@@ -11,8 +11,11 @@ or list-entries endpoint? If not, ask Relay X.
   - Chosen direction: option A, GET /changes replay from an early `since`, `territory=EU`,
     paged by `cursor`. Relay X indicated this is the intended route. Completeness is
     tracked as Q9.
-  - Source of the ~20,470 figure is unknown; the PDF states 14,183 EU entries and 271
-    substances with no CAS, EC or INCI. Check where 20,470 came from.
+  - The ~20,470 figure comes from the `searchMeans` text of lookup responses (scope not
+    stated). The EU replay holds 2,079 current entries with no identifier, so 20,470 is
+    most likely all territories. Asked to Relay X.
+  - Full EU replay done 2026-10-19: 15,205 rows, 15,064 entries, 15,058 current
+    (results/2026-10-19-kickoff.md). Completeness tracked in Q9.
 
 Q2 ANSWERED (by contract, docs/relayx/contract-notes-2026-10-19.md sections 2 and 3).
 Re-fetching changed entries. /changes returns logicalEntryId + changeKind only.
@@ -28,8 +31,8 @@ any other route) return full current entry content?
 
 Q3 OPEN. Extract runtime. At 60 units/min, ~14,000 lookups need roughly 4 hours
 minimum. Confirm actual substance count and acceptable re-baseline cadence.
-  - With option A, the EU replay is ~15,205 rows = ~77 pages of 200 at 1 unit per page
-    (measured 2026-10-19), about 145 MB raw. Minutes, not hours. Cadence still to decide.
+  - Measured 2026-10-19: full EU replay 77 pages, 77 units, 72 s plus one quota wait,
+    170 MB raw. Re-baseline is cheap; cadence still to decide.
 
 Q4 OPEN. Absence semantics. How to model 403 / 404 / withheldByScope /
 INSUFFICIENT_DATA / missingZones as explicit states in raw and core layers.
@@ -38,6 +41,9 @@ INSUFFICIENT_DATA / missingZones as explicit states in raw and core layers.
 
 Q5 OPEN. Seed list. Is identifiersonlyEU2.csv the complete EU substance index
 (the PDF mentions 8,728 EU-covered substances), and how is it kept current?
+  - 2026-10-19 sample: 67 of 210 catalogue rows return `KNOWN_WITHOUT_DATA` on EU lookup
+    (31 of 50 EC-only rows). The catalogue is wider than the EU entry set. With option A it
+    is no longer needed as a seed list, only as a test sample source.
 
 Q6 OPEN. Schema layout. Proposal (not decided): relayx_raw (append-only responses),
 relayx_ops (run log, cursor), relayx_core (normalised, versioned), plus a matching
@@ -50,6 +56,9 @@ RateLimit-Reset format. Until answered, the RateLimit-* headers are the source o
   - Observed on authenticated /changes: `RateLimit-Limit: 60`, Remaining 59 then 58
     (1 unit per page), Reset `1792419799` (Unix timestamp, 60 s ahead).
     `RateLimit-Policy: 15000;w=900` appears on both, possibly a separate gateway limit.
+  - lookup:batch: items x limit is capped at 2,500 (400 `batch_result_too_large`, not in
+    the contract). Remaining on batch responses lags: a batch was truncated mid-way after
+    the previous response showed 22 units left. Header-based unit counts undercount batches.
 
 Q8 ANSWERED (CLAUDE.md rule 4 changed 2026-10-19). Page /changes only with the returned
 `nextCursor` (passed back as `cursor`); `nextSince` is for dating only.
@@ -59,6 +68,12 @@ Q9 OPEN. Does a /changes replay from an early date return every current EU entry
   - Observed 2026-10-19: `since=2000-01-01`, page 1 `total: 15205` (rows remaining after
     the cursor, not corpus size), earliest `knownSince` 2026-08-01T00:30:42Z, all 400 rows
     `FIRST_RECORDED`, CLP Annex VI Table 3 only, 14 GROUP entries, all with identifiers.
-  - Not demonstrated: that the replay includes every annex, identifier-less collective
-    entries, and nothing that lookup returns but the feed omits. Completeness check
-    proposed in results/2026-10-19-kickoff.md, not run.
+  - Full replay 2026-10-19: last page `truncated: false`, sum of `returned` = 15,205 =
+    page 1 `total`. 33 annexRef values incl. CITES; 2,079 current entries without
+    identifiers (all named).
+  - Completeness check 2026-10-19: 249 of 249 entries returned by EU lookup for a
+    stratified sample of 210 catalogue identifiers are in the replay (rate 1.000 in every
+    stratum, 0 misses; 95 % upper bound on miss rate about 1.2 %).
+  - Remaining: Kevin's review (phase 1 gate); 4 entries with SUPERSEDED before
+    FIRST_RECORDED need /history to resolve their current version; Relay X confirmation
+    that the feed is a complete replay.

@@ -140,7 +140,12 @@ the service, and that openapi.json binds. Contract wins in every row below.
 - Corpus figures (EU, measured 2026-08-11/19): 8,728 EU-covered substances; 8,647 with at least
   one EU constraint; 271 with no CAS, EC or INCI (collective entries); 14,183 EU entries.
   Our open-questions.md cites ~20,470 current constraints with no identifier; that figure is
-  not in this PDF and its source should be checked.
+  not in this PDF. Source: the `searchMeans` text of /substances/lookup responses, e.g. in
+  the sample `demo-api-EU-2026-08-19.json` (generatedAt 2026-08-16, `view=standard`, EU-only
+  subscription; all 54 substance responses carry it): "It does NOT reach the 20470 current
+  constraints that carry no identifier at all". Its scope (EU or all territories, which
+  identifier fields count) is not stated. It is a server-generated count, so it may change
+  over time. Compared with the replay count in results/2026-10-19-kickoff.md.
 - Identifier provenance: CAS 74.4 % printed in the text / 25.6 % completed from an inventory;
   EC 98.1 % / 1.9 %; INCI 16.0 % / 84.0 %.
 - `asOf` does not restore superseded wordings: one consolidated version per act is held
