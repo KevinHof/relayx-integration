@@ -7,6 +7,7 @@ periodic SQL ingestion pipeline. Development and validation happen locally; prod
 implementation is handed over to the Covalo tech team (target Q1 2027).
 This work is also an evaluation of Relay X as a data vendor, so data quality findings
 are deliverables, not side notes.
+Phases, gates and grain hypotheses: docs/roadmap.md (do not start a phase before its gate).
 
 Background and current state: @docs/project-brief.md
 Open questions that block design decisions: @docs/open-questions.md
