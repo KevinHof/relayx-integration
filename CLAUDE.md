@@ -41,9 +41,12 @@ Decisions taken so far: docs/decisions/ (one ADR per decision)
 3. Never commit .env, API keys, or raw data dumps. Raw API payloads live in the
    database or in data/ (gitignored).
 4. Relay X API behaviour:
-   - Respect the quota (60 units/min per key; a batch entry costs one unit).
-     Read RateLimit-* headers, honour Retry-After on 429, handle `truncated: true`.
-   - Advance the /changes cursor only with the returned `nextSince`, never the local clock.
+   - Respect the quota. Treat the RateLimit-* response headers as authoritative; never
+     hard-code limits. Parse RateLimit-Reset defensively (seconds or Unix timestamp).
+     A batch entry costs one unit. Honour Retry-After on 429, handle `truncated: true`.
+   - Page /changes only with the returned opaque `nextCursor` (passed back as `cursor`),
+     never with `offset`, `nextSince` or the local clock. Store `nextSince` for dating a
+     sync only; it is inclusive, so dedupe on (logicalEntryId, knownSince).
    - Copy logicalEntryId values verbatim; never construct them.
 5. Absence is not permission. 403, 404, withheldByScope, missingZones,
    INSUFFICIENT_DATA and empty results are licensing or coverage states, never

@@ -1,0 +1,9 @@
+# PROPOSED, not installed yet. Target: dedicated conda env "relayx", Python 3.12.
+# conda create -n relayx python=3.12
+# conda activate relayx
+# pip install -r requirements.txt
+
+requests>=2.32,<3          # Relay X HTTP client (already used by legacy/relayx_client.py)
+psycopg[binary]>=3.2,<4    # Postgres driver (psycopg 3, bundled libpq)
+python-dotenv>=1.0,<2      # load DATABASE_URL, RELAYX_* from .env
+pytest>=8,<9               # tests for parsing, normalisation, matching
