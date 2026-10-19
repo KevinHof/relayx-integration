@@ -8,6 +8,7 @@ implementation is handed over to the Covalo tech team (target Q1 2027).
 This work is also an evaluation of Relay X as a data vendor, so data quality findings
 are deliverables, not side notes.
 Phases, gates and grain hypotheses: docs/roadmap.md (do not start a phase before its gate).
+Principle: extract broadly, model late. All content our key can access goes to raw with provenance and a completeness report; core models only per content type when a use needs them.
 
 Background and current state: @docs/project-brief.md
 Open questions that block design decisions: @docs/open-questions.md

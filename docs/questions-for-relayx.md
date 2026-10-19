@@ -47,3 +47,23 @@ set, and how is the rest retrieved?
 
 RX-11 DRAFT. Is there a field or filter that marks which EU layers are relevant to
 cosmetics (e.g. to exclude CITES species annexes), or is scoping left to the consumer? (VE-13)
+
+RX-12 DRAFT. Was 2026-08-01 your initial load? Every entry in our EU replay is first
+recorded on or after 2026-08-01T00:30:42Z, so `knownSince` reflects your ingestion, not
+the law. (VE-7)
+
+RX-13 DRAFT. Does the corpus include provisions repealed before 2026-08-01, or mainly law
+in force at build time? Where is `asOf` supported besides market-summary? The contract
+lists it on /substances/lookup, lookup:batch and market-summary only; is there a way to
+replay law time on /changes, /texts or /entries/{id}/history?
+
+RX-14 DRAFT. Do the per-substance endpoints (impurity-limits, screening, opinions) have a
+list or bulk route, or is per-substance lookup the intended way to get full coverage? Per
+substance, our source list is about 16,000 items per endpoint.
+
+RX-15 DRAFT. Are we fine to store a full local copy of all content accessible to our key
+during the trial, for evaluation purposes?
+
+RX-16 DRAFT. With a EUROPE subscription, do member-state territory codes (FR, DE, ...)
+return content distinct from `EU` (national provisions), or only the EU entries again?
+Note that FRANCE appears as a separate zone in `missingZones`. (VE-3)

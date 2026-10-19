@@ -1,12 +1,19 @@
 # ADR-001: Raw and ops layers, database role
 
-Status: ACCEPTED 2026-10-19 (Kevin), with changes a to c folded in. Database objects are
-created only after Kevin confirms he ran sql/000_setup_role.sql.
+Status: ACCEPTED 2026-10-19 (Kevin), with changes a to c folded in.
+AMENDED 2026-10-19 (Amendment 1, below): generic table `relayx_raw.api_response` for every
+endpoint other than /changes; scope widened accordingly. Amendment 1 awaits Kevin's review.
+Database objects are created only after Kevin confirms he ran sql/000_setup_role.sql.
 
 ## Scope
-This ADR covers the /changes feed only. Raw responses from other endpoints (lookup,
-lookup:batch, history, texts, coverage, allergens, market-summary) stay as files in
-`data/raw/` until a later ADR extends the raw layer.
+All raw Relay X API responses that our key can access (principle "extract broadly, model
+late", docs/roadmap.md):
+- /changes pages and their entry versions: `relayx_raw.changes_page` and
+  `relayx_raw.entry_version`, as designed below.
+- Every other endpoint (lookup, lookup:batch, market-summary, impurity-limits, screening,
+  opinions, allergens, texts, coverage, entries/{id}/history): one row per API call in
+  `relayx_raw.api_response` (Amendment 1).
+Byte-exact files stay in `data/raw/` for both. Core models are out of scope.
 
 ## Context
 - Roadmap phase 2 (raw load) is gated on this ADR. Phase 3 profiling needs the replay in
@@ -237,6 +244,60 @@ CREATE TABLE relayx_ops.feed_cursor (
    `POSTGRES_ADMIN_URL`, setup only with explicit approval (CLAUDE.md hard rule).
 4. Setup: Kevin runs `sql/000_setup_role.sql` and sets the password himself.
 5. Retention: keep `data/raw/` during the trial; archive per run with `relayx.archive_run`.
+   (Decision 1b, "scope limited to /changes", is superseded by Amendment 1.)
+
+## Amendment 1 (2026-10-19): generic raw table for all other endpoints
+
+Context: Kevin set the principle "extract broadly, model late": every endpoint our key can
+access is extracted into raw with provenance and a completeness report
+(docs/relayx/coverage-inventory.md). The /changes tables do not fit other endpoints,
+which are keyed by substance, territory or entry, have no cursor and no `changes[]`.
+
+Decision: one generic append-only table, one row per API call. The /changes tables stay as
+designed. Columns requested by Kevin: run id, endpoint, request params, requested_at,
+http_status, response bytes and sha256, rate headers, body as jsonb, raw file path. Added
+for the reasons given in the comments: `call_no`, `method`, `request_body`, `source_ref`,
+`body_sha256`. Runs of these endpoints are recorded in `relayx_ops.extract_run` like
+/changes runs (`feed` = endpoint group, e.g. `texts`, `lookup`).
+
+```sql
+-- One row per API call to any endpoint except /changes. Append-only.
+CREATE TABLE relayx_raw.api_response (
+    run_id          text NOT NULL REFERENCES relayx_ops.extract_run (run_id),
+    call_no         int  NOT NULL,          -- order within the run (several calls share a second)
+    endpoint        text NOT NULL,          -- path template, e.g. '/substances/lookup'
+    method          text NOT NULL,          -- GET, or POST for lookup:batch
+    request_params  jsonb NOT NULL,         -- query parameters as sent
+    request_body    jsonb,                  -- POST body (lookup:batch), else null
+    source_ref      jsonb,                  -- source-list item(s) this call serves, for completeness reports
+    requested_at    timestamptz NOT NULL,
+    http_status     smallint NOT NULL,      -- every status kept, incl. 4xx/5xx (rule 5)
+    response_bytes  int  NOT NULL,
+    response_sha256 text NOT NULL,          -- sha256 of the raw bytes
+    body_sha256     text,                   -- canonical_sha256(body), for snapshot comparison
+    rate_headers    jsonb,
+    body            jsonb,                  -- null if the body is not JSON (raw file still kept)
+    raw_file        text NOT NULL,
+    loaded_at       timestamptz NOT NULL DEFAULT now(),
+    PRIMARY KEY (run_id, call_no)
+);
+CREATE INDEX api_response_endpoint_idx ON relayx_raw.api_response (endpoint, requested_at);
+CREATE TRIGGER api_response_append_only BEFORE UPDATE OR DELETE ON relayx_raw.api_response
+    FOR EACH ROW EXECUTE FUNCTION relayx_raw.forbid_change();
+CREATE TRIGGER api_response_no_truncate BEFORE TRUNCATE ON relayx_raw.api_response
+    FOR EACH STATEMENT EXECUTE FUNCTION relayx_raw.forbid_change();
+```
+
+Consequences:
+- Snapshot comparison between runs uses `body_sha256` per (endpoint, request). Bodies that
+  echo volatile values (e.g. `asOf` defaulting to today) will hash differently even when
+  the content is unchanged; which fields to exclude is decided per content type during
+  profiling, not in raw.
+- lookup:batch rows hold up to 50 substance results in one body; `source_ref` lists the
+  items so completeness can be reported per item.
+- Raw volume grows with per-substance runs (estimate in the coverage inventory); the
+  triggers and the 4C note apply equally.
+- Added to `sql/001_raw_ops.sql`, which has not been run yet.
 
 ## Date
-2026-10-19 (proposed and accepted)
+2026-10-19 (proposed and accepted); Amendment 1 2026-10-19

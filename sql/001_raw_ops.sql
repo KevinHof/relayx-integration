@@ -84,4 +84,30 @@ CREATE TRIGGER entry_version_append_only BEFORE UPDATE OR DELETE ON relayx_raw.e
 CREATE TRIGGER entry_version_no_truncate BEFORE TRUNCATE ON relayx_raw.entry_version
     FOR EACH STATEMENT EXECUTE FUNCTION relayx_raw.forbid_change();
 
+-- ADR-001 Amendment 1: one row per API call to any endpoint except /changes. Append-only.
+CREATE TABLE relayx_raw.api_response (
+    run_id          text NOT NULL REFERENCES relayx_ops.extract_run (run_id),
+    call_no         int  NOT NULL,
+    endpoint        text NOT NULL,
+    method          text NOT NULL,
+    request_params  jsonb NOT NULL,
+    request_body    jsonb,
+    source_ref      jsonb,
+    requested_at    timestamptz NOT NULL,
+    http_status     smallint NOT NULL,
+    response_bytes  int  NOT NULL,
+    response_sha256 text NOT NULL,          -- sha256 of the raw bytes
+    body_sha256     text,                   -- relayx.hashing.canonical_sha256(body)
+    rate_headers    jsonb,
+    body            jsonb,
+    raw_file        text NOT NULL,
+    loaded_at       timestamptz NOT NULL DEFAULT now(),
+    PRIMARY KEY (run_id, call_no)
+);
+CREATE INDEX api_response_endpoint_idx ON relayx_raw.api_response (endpoint, requested_at);
+CREATE TRIGGER api_response_append_only BEFORE UPDATE OR DELETE ON relayx_raw.api_response
+    FOR EACH ROW EXECUTE FUNCTION relayx_raw.forbid_change();
+CREATE TRIGGER api_response_no_truncate BEFORE TRUNCATE ON relayx_raw.api_response
+    FOR EACH STATEMENT EXECUTE FUNCTION relayx_raw.forbid_change();
+
 COMMIT;
