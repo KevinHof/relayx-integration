@@ -6,7 +6,7 @@ status. Principle: extract broadly, model late (docs/roadmap.md). Raw target:
 `relayx_raw.changes_page` / `entry_version` for /changes, `relayx_raw.api_response` for
 everything else (ADR-001 and Amendment 1).
 
-Access evidence so far: subscription `grantedZones: ["EUROPE"]`, `withheldByScope.count` 0
+Access evidence (updated 2026-10-19 after phase 2 runs): every data route called so far returned 200. Earlier: subscription `grantedZones: ["EUROPE"]`, `withheldByScope.count` 0
 on every /changes page, no 403 seen. Our scopes have not been read directly (a 403 would
 list `grantedScopes`); per the PDF the EU corpus is fully served under `read:public`.
 "Not called" means no evidence yet either way.
@@ -21,16 +21,16 @@ units take about 2.8 h of quota time. The binding limit is still asked (RX-1).
 |---|---|---|---|---|---|
 | GET /health | service status | yes (200, no key) | n/a | 0 | not content |
 | GET /openapi.json | contract | yes (200, no key) | snapshot per run, en (and fr) | 0 | snapshot 2026-10-19 (en) |
-| GET /changes | every recorded version of every entry, full `Contrainte` | yes (200) | time-keyed feed, cursor | 77 (EU) | DONE as files (run 20261019T143522Z_eu); DB load pending |
-| GET /entries/{id}/history | all versions with `knowledge` window (knownFrom/Until, retracted, supersession, coveredBy) | not called | per entry, from replay ids | 15,064 (all) or about 150 (multi-version, retracted, anomalies) | not started |
-| GET /texts | legal text catalogue, amendment chain, validity, deadSourceUrls | not called | paginated list per territory | 1 to 5 (EU) | not started |
-| GET /coverage | coverage scopes, completeness, absenceMeans | not called | paginated list per territory | 1 (EU, PDF: 36 scopes) | not started |
-| GET /allergens | declarable allergens with threshold text, basisActs | not called | paginated list per territory | 1 (EU, PDF: 129) | not started |
-| GET /substances/lookup and POST lookup:batch | constraints in force, `upcoming`, `substanceContext` (opinions, screening, precedents, pipeline), ingredientStatus, otherNameMatches, baseForm | yes (batch 200, sample of 210) | per substance from the source list | about 16,000 plus paging follow-ups | sample only |
-| GET /substances/market-summary | verdict per market, statusMeans, entryRefs; no text | not called | per substance | about 16,000 | not started |
-| GET /substances/impurity-limits | impurity thresholds per market, regime, matrix, verificationLevel | not called | per substance (name accepted) | about 16,000 | not started |
-| GET /substances/screening | screening list membership (PFAS EPA, IFRA, ECHA processes), links | not called | per substance (cas, ec, inci only) | about 14,000 to 16,000 | not started |
-| GET /substances/opinions | scientific opinion pointers (body, reference, date, link) | not called | per substance (cas, ec, inci only) | about 14,000 to 16,000 | not started |
+| GET /changes | every recorded version of every entry, full `Contrainte` | yes (200) | time-keyed feed, cursor | 77 (EU) | DONE (run 20261019T143522Z_eu), loaded, all checks pass |
+| GET /entries/{id}/history | all versions with `knowledge` window (knownFrom/Until, retracted, supersession, coveredBy) | yes (200) | per entry, from replay ids | 15,064 (all) or 147 (narrow) | narrow DONE 2026-10-19 (147), loaded; full not planned (adds only knownFrom = knownSince) |
+| GET /texts | legal text catalogue, amendment chain, validity, deadSourceUrls | yes (200), 1 text withheld | paginated list per territory | 1 (EU, 115 texts) | DONE 2026-10-19, loaded |
+| GET /coverage | coverage scopes, completeness, absenceMeans | yes (200) | paginated list per territory | 1 (EU, 51 scopes) | DONE 2026-10-19, loaded |
+| GET /allergens | declarable allergens with threshold text, basisActs | yes (200) | paginated list per territory | 1 (EU, 137) | DONE 2026-10-19, loaded |
+| GET /substances/lookup and POST lookup:batch | constraints in force, `upcoming`, `substanceContext` (opinions, screening, precedents, pipeline), ingredientStatus, otherNameMatches, baseForm | yes (batch 200) | per substance from the source list | about 16,000 plus paging follow-ups | pilot of 100 loaded; full run recommended |
+| GET /substances/market-summary | verdict per market, statusMeans, entryRefs; no text | yes (200) | per substance | about 16,000 | pilot of 100 loaded; full run not recommended (EU rows equal lookup) |
+| GET /substances/impurity-limits | impurity thresholds per market, regime, matrix, verificationLevel | yes (200) | per substance (name accepted) | about 16,000 | pilot: 0 of 100 with limits; deferred (RX-14) |
+| GET /substances/screening | screening list membership (PFAS EPA, IFRA, ECHA processes), links | yes (200) | per substance (cas, ec, inci only) | about 14,000 | pilot of 80 loaded; full run recommended (lookup holds a subset) |
+| GET /substances/opinions | scientific opinion pointers (body, reference, date, link) | yes (200) | per substance (cas, ec, inci only) | about 14,000 | pilot of 80 loaded; full run recommended provisionally |
 | POST /mcp | same data as the HTTP routes, same quota | not used | not a separate source | 0 | out of scope |
 
 Per-substance total: about 80,000 units, about 22 h of quota time at 60/min, run in the

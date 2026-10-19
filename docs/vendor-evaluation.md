@@ -84,3 +84,57 @@ scope filtering is the consumer's job; no flag marks cosmetics relevance (RX-11)
 VE-14 DEMONSTRATED. Free-text notes (`verificationNote`, `errataNote`) are in French, as
 the contract states. `annexRef` values contain non-ASCII punctuation and French
 ("hors Appendices CITES").
+
+## E. Entry history and knowledge window (2026-10-19, run 20261019T174304Z_history_narrow_eu)
+
+VE-15 DEMONSTRATED. /entries/{id}/history for the 147 entries with more than one version or
+a retraction (147 calls, all 200): every one of the 288 versions matches a /changes row on
+`knowledge.knownFrom` = `knownSince`, with identical entry content. History adds only the
+`knowledge` block; the feed adds only `changeKind`. For single-version entries the history
+would add nothing beyond knownFrom = knownSince (not called).
+
+VE-16 DEMONSTRATED. Knowledge window inconsistent for 31 of the 147 entries: both versions
+carry `isCurrent: true` and `knownUntil: null`, although one of them has a
+`supersededByVersionId` and `supersessionNature: RULE_CHANGED`. The contract says a
+superseded version is closed. 110 entries behave as documented (old version closed,
+`isCurrent: false`); the 6 retracted entries have one version with `isCurrent: false` and
+`retracted` set, as documented. (RX-17)
+
+VE-17 DEMONSTRATED. `supersededByVersionId` cannot be resolved: no version id is exposed in
+any /changes row or history version. With two versions per entry the successor follows by
+elimination; with more it would not. (RX-18)
+
+VE-18 DEMONSTRATED. For the 4 out-of-order entries (VE-9), history shows both versions with
+`isCurrent: true`; the `supersededByVersionId` marker sits on the LATER version (FIRST_RECORDED,
+2026-08-26), so the EARLIER version (SUPERSEDED row, 2026-08-01) is its successor. Feed order
+alone ("last row is current") therefore picks the superseded version for these 4 entries.
+
+## F. Corpus lists (2026-10-19, runs 20261019T174201Z_*_eu)
+
+VE-19 DEMONSTRATED. /texts, /coverage and /allergens for EU are accessible (200), each in one
+page: 115 texts (111 IN_FORCE, 4 without status), 51 coverage scopes (49 COMPLETE, 2 PARTIAL;
+44 negative, 6 positive, 1 mixed list), 137 allergens. The 115 texts' `constraintCount` sum
+to 15,205, exactly the replay's row count (all versions). Positive consistency signal.
+
+VE-20 DEMONSTRATED. One EU text is withheld under our key: /texts returns
+`withheldByScope.count: 1` ("redistribution right licensed beyond your key scope, or not yet
+established"; amending acts among them, so amendment chains from this list are incomplete).
+/changes reported `withheldByScope.count: 0` on every page. Which text it is, is not stated.
+(RX-19)
+
+VE-21 DEMONSTRATED. PDF figures are out of date for the lists: allergens 137 with basisActs
+`32009R1223` (PDF: 129, `32023R1545`); coverage 51 scopes, 49 COMPLETE (PDF example: 36 scopes,
+PARTIAL shown).
+
+## G. Per-substance pilot (2026-10-19, run 20261019T174653Z_substance_pilot_eu)
+
+VE-22 DEMONSTRATED. `substanceContext.screeningLists` in lookup is a strict subset of
+/substances/screening: 21 of 44 items for the same 100 substances, and empty for all 20
+EC-only queries where the endpoint returned 10 items. Lookup alone under-reports screening
+memberships.
+
+VE-23 DEMONSTRATED. /substances/market-summary EU rows agree with lookup in all 65 cases
+(`constraintCount` and `entryRefs`). Consistency signal between endpoints.
+
+VE-24 DEMONSTRATED. /substances/impurity-limits returned no limit for any of 100 sampled
+catalogue substances. The dataset is narrow; a per-substance sweep has low yield (RX-14).

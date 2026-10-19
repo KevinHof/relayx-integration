@@ -67,3 +67,17 @@ during the trial, for evaluation purposes?
 RX-16 DRAFT. With a EUROPE subscription, do member-state territory codes (FR, DE, ...)
 return content distinct from `EU` (national provisions), or only the EU entries again?
 Note that FRANCE appears as a separate zone in `missingZones`. (VE-3)
+
+RX-17 DRAFT. Knowledge window: 31 of the 147 EU entries with two versions show BOTH versions
+with `isCurrent: true` and `knownUntil: null`, although one has `supersededByVersionId` and
+`supersessionNature: RULE_CHANGED`. Should the superseded version be closed? How should a
+consumer determine the current version? Example ids: 03c0ccef-0f56-59e8-8d17-21e7c4bb93ca,
+062b62e2-051e-52e3-be90-2aeaac6e5239; the 4 ids in RX-5 are also affected. (VE-16, VE-18)
+
+RX-18 DRAFT. `supersededByVersionId` refers to a version id that is not exposed in /changes
+rows or history versions. Can version ids be served, so supersession chains can be resolved
+when an entry has more than two versions? (VE-17)
+
+RX-19 DRAFT. /texts?territory=EU reports `withheldByScope.count: 1`. Which text is withheld
+from our key, why (licence or right not yet established), and does it affect any constraint
+entries? /changes reported no withheld entries. (VE-20)

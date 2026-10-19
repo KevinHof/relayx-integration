@@ -11,8 +11,9 @@ between runs.
 Phases run in this order. Each one has a gate; do not start a phase before its gate is passed.
 
 0. Kickoff (done): environment, API contract, open questions.
-1. Full replay via /changes (done, awaiting review). Gate: completeness check result reviewed by Kevin. Then ADR on extraction strategy.
-2. Raw load and broad extraction. Gate: ADR-001 (raw and ops layers, database role).
+1. Full replay via /changes (done 2026-10-19: EU replay 15,205 rows, completeness check 249/249). Gate: completeness check result reviewed by Kevin. Then ADR on extraction strategy (to be provided by Kevin).
+2. Raw load and broad extraction. Gate: ADR-001 (raw and ops layers, database role), accepted 2026-10-19.
+   Status 2026-10-19: 2a done (replay loaded, all checks pass); corpus lists, narrow entry history and the per-substance pilot extracted and loaded; full per-substance run not started (awaits Kevin's decision on the pilot recommendation).
    a. Load the /changes replay into relayx_raw.changes_page and relayx_raw.entry_version.
    b. Extract every other endpoint into relayx_raw.api_response: corpus lists first
       (texts, coverage, allergens), then per-substance endpoints (lookup, market-summary,

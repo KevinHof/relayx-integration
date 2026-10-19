@@ -77,3 +77,10 @@ Q9 OPEN. Does a /changes replay from an early date return every current EU entry
   - Remaining: Kevin's review (phase 1 gate); 4 entries with SUPERSEDED before
     FIRST_RECORDED need /history to resolve their current version; Relay X confirmation
     that the feed is a complete replay.
+
+Q10 OPEN. Core model: how to determine the current version of an entry when feed order and
+`isCurrent` disagree. Facts (2026-10-19): 31 of 147 multi-version EU entries have two versions
+with `isCurrent: true`; `supersededByVersionId` points to version ids that are not exposed;
+for 4 entries feed order and the supersession marker disagree (VE-16 to VE-18). Options to
+decide in the phase 4 ADR: feed order, supersession marker by elimination, latest
+`knownSince`, or flag as ambiguous and keep both. Asked to Relay X (RX-17, RX-18).

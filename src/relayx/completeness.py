@@ -20,7 +20,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import random
 import sys
 from datetime import datetime, timezone
@@ -63,8 +62,8 @@ def draw_sample(catalogue: list[dict], n: dict[str, int], seed: int = SEED) -> l
 
 
 def read_catalogue() -> list[dict]:
-    import psycopg
-    with psycopg.connect(os.environ["RELAYX_DATABASE_URL"]) as conn:
+    from .db import connect
+    with connect() as conn:
         conn.read_only = True
         with conn.cursor() as cur:
             cur.execute(STRATUM_SQL)

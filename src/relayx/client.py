@@ -149,6 +149,8 @@ class RelayXClient:
                                      "User-Agent": "covalo-relayx-integration/0.1"})
         self.quota = QuotaTracker()
         self.requests_sent = 0
+        self.units_requested = 0
+        self._last_units = 1
 
     def __repr__(self) -> str:
         return f"<RelayXClient base={self.base_url} key={'set' if self._api_key else 'MISSING'}>"
@@ -170,8 +172,12 @@ class RelayXClient:
         self.sleep(seconds)
 
     def wait_for_units(self, needed: int = 1) -> None:
-        """Block until the last seen headers say `needed` units are available."""
+        """Block until the last seen headers say `needed` units are available.
+
+        Remaining lags on batch responses (VE-6): a margin of the previous call's size
+        minus one is kept on top of `needed`."""
         q = self.quota
+        needed += max(0, self._last_units - 1)
         if q.remaining is not None and q.remaining < needed:
             w = reset_wait_seconds(q.reset_raw)
             self._wait((w if w is not None else 60) + 1, f"{q.remaining} units left, need {needed}")
@@ -198,6 +204,9 @@ class RelayXClient:
                 raise
             elapsed = time.perf_counter() - t0
             self.requests_sent += 1
+            if auth:
+                self.units_requested += units
+                self._last_units = units
             raw = resp.content or b""
             rate = {h: resp.headers.get(h) for h in RATE_HEADERS if resp.headers.get(h) is not None}
             if auth:
