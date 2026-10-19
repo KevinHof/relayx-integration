@@ -4,6 +4,7 @@ import pytest
 
 from relayx.changes_replay import ReplayError, run
 from relayx.client import ApiResult, QuotaTracker
+from relayx.hashing import sha256_bytes
 from relayx.replay_stats import compute, current_entries, has_identifier, load_rows
 
 
@@ -34,8 +35,8 @@ class FakeClient:
         self.requests_sent += 1
         rate = {"RateLimit-Limit": "60", "RateLimit-Remaining": str(60 - self.requests_sent)}
         self.quota.update(rate)
-        return ApiResult("GET", "/changes", {"cursor": cursor}, None, 200, 0.0, raw, "h", None,
-                         rate, "application/json", "t", 1, body)
+        return ApiResult("GET", "/changes", {"cursor": cursor}, None, 200, 0.0, raw, sha256_bytes(raw),
+                         None, rate, "application/json", "t", 1, body)
 
 
 PAGES = [[row("a"), row("b")], [row("c"), row("a", "SUPERSEDED", "2026-08-02T00:00:00Z")], [row("d", cas="50-00-0")]]

@@ -64,7 +64,7 @@ def draw_sample(catalogue: list[dict], n: dict[str, int], seed: int = SEED) -> l
 
 def read_catalogue() -> list[dict]:
     import psycopg
-    with psycopg.connect(os.environ["DATABASE_URL"]) as conn:
+    with psycopg.connect(os.environ["RELAYX_DATABASE_URL"]) as conn:
         conn.read_only = True
         with conn.cursor() as cur:
             cur.execute(STRATUM_SQL)

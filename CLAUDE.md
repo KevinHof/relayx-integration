@@ -24,9 +24,10 @@ Decisions taken so far: docs/decisions/ (one ADR per decision)
 - Writing style for docs and summaries: concise, factual, no em dashes.
 
 ## Environment
-- Windows machine, Python via Anaconda. Use a dedicated env (see README once created).
+- Windows machine, Python via Anaconda. Conda env `relayx` (Python 3.12, requirements.txt).
 - Local Postgres: covalo-local-complete, PostgreSQL 14 in Docker, port 5434.
-  Connection string comes from DATABASE_URL in .env. Never hard-code credentials.
+  Connection strings come from .env: RELAYX_DATABASE_URL (role relayx_app, regular use)
+  and POSTGRES_ADMIN_URL (superuser, approved setup only). Never hard-code credentials.
 - Covalo source tables live in schema `covalo` (e.g. covalo.product, covalo.company;
   product.company is the FK to company.id). Existing Relay X exploration tables and the
   view kevin.product_identifiers live in schema `kevin`.
@@ -36,7 +37,9 @@ Decisions taken so far: docs/decisions/ (one ADR per decision)
 
 ## Hard rules
 1. Never connect to the production read replica or use the SSH bastion tunnel.
-   Only the local database on port 5434.
+   Only the local database on port 5434. All database access goes through
+   RELAYX_DATABASE_URL. Using POSTGRES_ADMIN_URL or `docker exec` as postgres is allowed
+   only for setup steps Kevin explicitly approves.
 2. Treat schema `covalo` as read-only. Write only to schemas approved in an ADR
    (until then: propose, do not create).
 3. Never commit .env, API keys, or raw data dumps. Raw API payloads live in the

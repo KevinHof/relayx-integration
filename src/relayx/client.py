@@ -14,8 +14,6 @@ The API key is read from the environment and never written or printed.
 """
 from __future__ import annotations
 
-import hashlib
-import json
 import os
 import time
 from dataclasses import dataclass, field
@@ -23,6 +21,8 @@ from datetime import datetime, timezone
 from typing import Any, Callable
 
 import requests
+
+from .hashing import canonical_sha256, sha256_bytes
 
 DEFAULT_BASE_URL = "https://api.relay-x.com/api/regulatory/v1"
 API_PREFIX = "/api/regulatory/v1"
@@ -39,11 +39,10 @@ def utc_now() -> str:
 
 
 def canonical_hash(obj: Any) -> str | None:
-    """SHA-256 of canonical JSON (sorted keys, no whitespace). None if not JSON."""
+    """SHA-256 of canonical JSON (see relayx.hashing). None if the body is not JSON."""
     if obj is None or isinstance(obj, str):
         return None
-    payload = json.dumps(obj, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
-    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+    return canonical_sha256(obj)
 
 
 def reset_wait_seconds(value: str | None, now: float | None = None) -> float | None:
@@ -210,7 +209,7 @@ class RelayXClient:
             result = ApiResult(
                 method=method.upper(), path=path, params=params, body_sent=json_body,
                 status=resp.status_code, elapsed_s=round(elapsed, 3), raw=raw,
-                sha256_raw=hashlib.sha256(raw).hexdigest(), sha256_canonical=canonical_hash(data),
+                sha256_raw=sha256_bytes(raw), sha256_canonical=canonical_hash(data),
                 rate=rate, content_type=resp.headers.get("Content-Type"),
                 requested_at=requested_at, attempt=attempt, data=data)
             self._log(f"  {method.upper()} {path} {resp.status_code} {len(raw)}B "
