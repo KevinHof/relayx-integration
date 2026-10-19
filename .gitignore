@@ -1,0 +1,8 @@
+.env
+data/
+*.dump
+*.sql.gz
+__pycache__/
+.ipynb_checkpoints/
+.claude/settings.local.json
+CLAUDE.local.md
