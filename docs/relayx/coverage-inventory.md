@@ -102,6 +102,11 @@ The list is built from local data, versioned by content hash and stored with eac
 Every run writes results/<date>-<endpoint>-extract.md with:
 - Source list: version hash, item counts by origin (replay only, catalogue only, both,
   name only).
+- Strata: every count below is broken down by the query identifier used (CAS, EC-only,
+  INCI-only, name). Name-based queries are always a separate stratum and never pooled with
+  identifier queries, because matching semantics differ by endpoint: lookup `name` is a
+  whole-term match (contract), impurity-limits `name` is an exact chemical-name match, and
+  screening and opinions do not accept `name` at all (`NOT_QUERYABLE`).
 - Per endpoint: items queried; result state counts: content returned, empty with stated
   reason (`ingredientStatus`, `substanceKnown: false`, empty list), HTTP 4xx/5xx by code,
   `truncated` or unevaluated and re-queued, `NOT_QUERYABLE`; items with `total` above the
