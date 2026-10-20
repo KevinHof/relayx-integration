@@ -4,7 +4,32 @@ Status values: DRAFT (not yet sent), ASKED (date), PARTLY ANSWERED (date, what i
 answered and what is still pending, source), ANSWERED (date, summary and source).
 Linked findings: docs/vendor-evaluation.md (VE-n). Internal questions: docs/open-questions.md.
 
-RX-1 ANSWERED 2026-10-19 (asked by Kevin 2026-10-19; answer from Pierre, Relay X, Slack).
+## Sent to Relay X
+Shared list of 2026-10-19 (Q01 to Q15): docs/relayx/covalo-questions-for-relayx-2026-10-19.md.
+
+| Shared | RX | Note |
+|---|---|---|
+| Q01 | RX-3 | Start of knowledge log asked separately as Q02 |
+| Q02 | RX-12 | |
+| Q03 | RX-13 | |
+| Q04 | RX-14 | |
+| Q05 | RX-10 | |
+| Q06 | RX-5 | |
+| Q07 | RX-9 | |
+| Q08 | RX-4 | |
+| Q09 | RX-8 | |
+| Q10 | RX-11 | |
+| Q11 | RX-6 | unavailableZones part only |
+| Q12 | RX-16 | Mentions FRANCE in missingZones; does not ask directly why FRANCE is a separate zone (RX-6) |
+| Q13 | RX-1 | Asks which limit applies, per key or per subscription; /changes unit cost and Reset format stated as observations, not asked |
+| Q14 | RX-2 | |
+| Q15 | RX-7 | |
+
+Not in the shared list: RX-15 (no Q16 in the file), RX-17 to RX-19 (Slack follow-up planned).
+
+## Questions
+
+RX-1 ANSWERED 2026-10-19 (asked by Kevin 2026-10-19 as shared Q13; answer from Pierre, Relay X, Slack).
 Quota. Which limit binds (PDF: 60/min per key; contract: per subscription per minute;
 observed `RateLimit-Limit` 60 on authenticated calls and 15000 on unauthenticated ones,
 `RateLimit-Policy: 15000;w=900` on all)? What is the unit cost of one /changes page? Is
@@ -19,12 +44,12 @@ observed `RateLimit-Limit` 60 on authenticated calls and 15000 on unauthenticate
   - Not addressed: `RateLimit-Reset` format (contract and authenticated responses: Unix
     timestamp).
 
-RX-2 DRAFT. lookup:batch. Please document the cap of 2,500 on items x `limit`
+RX-2 ASKED 2026-10-19 (shared Q14). lookup:batch. Please document the cap of 2,500 on items x `limit`
 (`batch_result_too_large`). Does `RateLimit-Remaining` on a batch response reflect the
 charge for that batch's items? We saw a mid-batch truncation after the previous response
 showed 22 units left. (VE-3, VE-6)
 
-RX-3 PARTLY ANSWERED 2026-10-19 (Pierre, Relay X, Slack). /changes as full extract. Please
+RX-3 PARTLY ANSWERED 2026-10-19 (asked as shared Q01; answer from Pierre, Relay X, Slack). /changes as full extract. Please
 confirm that `/changes?since=<before corpus start>&territory=EU`, paged by cursor to
 `truncated: false`, returns every version of every EU entry visible to our key, with
 nothing withheld beyond `withheldByScope`. Is 2026-08-01T00:30Z the start of the knowledge
@@ -35,52 +60,52 @@ log? (VE-7, VE-8, Q9, ADR-002)
   Pending: explicit confirmation that nothing is withheld beyond `withheldByScope`;
   start of the knowledge log (see also RX-12).
 
-RX-4 DRAFT. The `searchMeans` text says "20470 current constraints that carry no identifier
+RX-4 ASKED 2026-10-19 (shared Q08). The `searchMeans` text says "20470 current constraints that carry no identifier
 at all". Which territories and which identifier fields does this count cover? Our EU
 replay has 2,079 current entries without CAS, EC, INCI, CLP index or Colour Index. (VE-11)
 
-RX-5 DRAFT. Feed ordering. Entries Annex III 24, 70, 75 and Annex VI 28 (EU) show a
+RX-5 ASKED 2026-10-19 (shared Q06). Feed ordering. Entries Annex III 24, 70, 75 and Annex VI 28 (EU) show a
 SUPERSEDED row at 2026-08-01 before their FIRST_RECORDED row at 2026-08-26. Which version
 is current, and is this expected? logicalEntryIds: 36adaac2-b629-52b9-98b6-79e1c4b53fec,
 12a04b9b-31b8-5762-a0ef-eea922a94c93, 81b9df22-e949-530c-b722-1c53893cfd4d,
 9bc20320-a0fd-5730-9433-4459a57193a2. (VE-9)
 
-RX-6 DRAFT. `subscription.unavailableZones` is served but not in the contract schema; how
+RX-6 ASKED 2026-10-19 (shared Q11). `subscription.unavailableZones` is served but not in the contract schema; how
 does it differ from `missingZones`? Why is FRANCE a zone separate from EUROPE? (VE-3)
 
-RX-7 DRAFT. Can the PDF be updated to the served contract (cursor paging, row content,
+RX-7 ASKED 2026-10-19 (shared Q15). Can the PDF be updated to the served contract (cursor paging, row content,
 quota, `name` matching, base URL)? (VE-1)
 
-RX-8 DRAFT. Identifier catalogue (identifiersonlyEU2.csv). What defines membership, how is
+RX-8 ASKED 2026-10-19 (shared Q09). Identifier catalogue (identifiersonlyEU2.csv). What defines membership, how is
 it kept current, and why do many rows (about a third in our sample, two thirds of EC-only
 rows) return `KNOWN_WITHOUT_DATA` on EU lookup? (VE-12, Q5)
 
-RX-9 DRAFT. Entries that exist only as RETRACTED rows (6 in the EU feed) have no
+RX-9 ASKED 2026-10-19 (shared Q07). Entries that exist only as RETRACTED rows (6 in the EU feed) have no
 FIRST_RECORDED event. Is that intended for rows retracted before first publication? (VE-10)
 
-RX-10 DRAFT. /entries/{id}/history carries a `truncated` flag but no paging. When is it
+RX-10 ASKED 2026-10-19 (shared Q05). /entries/{id}/history carries a `truncated` flag but no paging. When is it
 set, and how is the rest retrieved?
 
-RX-11 DRAFT. Is there a field or filter that marks which EU layers are relevant to
+RX-11 ASKED 2026-10-19 (shared Q10). Is there a field or filter that marks which EU layers are relevant to
 cosmetics (e.g. to exclude CITES species annexes), or is scoping left to the consumer? (VE-13)
 
-RX-12 DRAFT. Was 2026-08-01 your initial load? Every entry in our EU replay is first
+RX-12 ASKED 2026-10-19 (shared Q02). Was 2026-08-01 your initial load? Every entry in our EU replay is first
 recorded on or after 2026-08-01T00:30:42Z, so `knownSince` reflects your ingestion, not
 the law. (VE-7)
 
-RX-13 DRAFT. Does the corpus include provisions repealed before 2026-08-01, or mainly law
+RX-13 ASKED 2026-10-19 (shared Q03). Does the corpus include provisions repealed before 2026-08-01, or mainly law
 in force at build time? Where is `asOf` supported besides market-summary? The contract
 lists it on /substances/lookup, lookup:batch and market-summary only; is there a way to
 replay law time on /changes, /texts or /entries/{id}/history?
 
-RX-14 DRAFT. Do the per-substance endpoints (impurity-limits, screening, opinions) have a
+RX-14 ASKED 2026-10-19 (shared Q04). Do the per-substance endpoints (impurity-limits, screening, opinions) have a
 list or bulk route, or is per-substance lookup the intended way to get full coverage? Per
 substance, our source list is about 16,000 items per endpoint.
 
 RX-15 DRAFT. Are we fine to store a full local copy of all content accessible to our key
 during the trial, for evaluation purposes?
 
-RX-16 DRAFT. With a EUROPE subscription, do member-state territory codes (FR, DE, ...)
+RX-16 ASKED 2026-10-19 (shared Q12). With a EUROPE subscription, do member-state territory codes (FR, DE, ...)
 return content distinct from `EU` (national provisions), or only the EU entries again?
 Note that FRANCE appears as a separate zone in `missingZones`. (VE-3)
 
