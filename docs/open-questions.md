@@ -57,8 +57,8 @@ source of truth (CLAUDE.md rule 4).
     Relay X will fix the header and the docs. One /changes page = one unit regardless of
     size; `limit=200` is the maximum. Trial runs on the standard 60/min, adjustable when
     going commercial based on stated throughput.
-  - Not covered by the answer: RateLimit-Reset format. Contract and authenticated
-    responses say Unix timestamp; keep parsing defensively.
+  - RateLimit-Reset format: answered by observation (2026-10-20): contract and
+    authenticated responses agree on a Unix timestamp; parsing stays defensive.
   - Observed on unauthenticated routes: `RateLimit-Limit: 15000`, Reset 900 / 793.
   - Observed on authenticated /changes: `RateLimit-Limit: 60`, Remaining 59 then 58
     (1 unit per page), Reset `1792419799` (Unix timestamp, 60 s ahead).

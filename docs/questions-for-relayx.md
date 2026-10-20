@@ -1,7 +1,8 @@
 # Questions for Relay X (batched)
 
 Status values: DRAFT (not yet sent), ASKED (date), PARTLY ANSWERED (date, what is
-answered and what is still pending, source), ANSWERED (date, summary and source).
+answered and what is still pending, source), ANSWERED (date, summary and source),
+MOVED TO CONTRACT (not asked as a question; covered in the contract with Relay X).
 Linked findings: docs/vendor-evaluation.md (VE-n). Internal questions: docs/open-questions.md.
 
 ## Sent to Relay X
@@ -19,13 +20,14 @@ Shared list of 2026-10-19 (Q01 to Q15): docs/relayx/covalo-questions-for-relayx-
 | Q08 | RX-4 | |
 | Q09 | RX-8 | |
 | Q10 | RX-11 | |
-| Q11 | RX-6 | unavailableZones part only |
-| Q12 | RX-16 | Mentions FRANCE in missingZones; does not ask directly why FRANCE is a separate zone (RX-6) |
+| Q11 | RX-6 | unavailableZones part only; the FRANCE part of RX-6 goes into the Slack follow-up |
+| Q12 | RX-16 | Mentions FRANCE in missingZones; does not ask directly why FRANCE is a separate zone |
 | Q13 | RX-1 | Asks which limit applies, per key or per subscription; /changes unit cost and Reset format stated as observations, not asked |
 | Q14 | RX-2 | |
 | Q15 | RX-7 | |
 
-Not in the shared list: RX-15 (no Q16 in the file), RX-17 to RX-19 (Slack follow-up planned).
+Not in the shared list: RX-15 (removed before sending, moved to contract); the FRANCE part
+of RX-6 and RX-17 to RX-19 (Slack follow-up planned); RX-20 (added 2026-10-20, DRAFT).
 
 ## Questions
 
@@ -41,8 +43,9 @@ observed `RateLimit-Limit` 60 on authenticated calls and 15000 on unauthenticate
     can be adjusted when we go commercial, based on the throughput we state.
   - /changes: one page = one unit regardless of size; `limit=200` is the maximum; results
     are oldest first and resumable.
-  - Not addressed: `RateLimit-Reset` format (contract and authenticated responses: Unix
-    timestamp).
+  - `RateLimit-Reset` format: not in Relay X's answer; answered by observation
+    (2026-10-20, Kevin): the contract and our authenticated responses agree on a Unix
+    timestamp. Parsing stays defensive (CLAUDE.md rule 4).
 
 RX-2 ASKED 2026-10-19 (shared Q14). lookup:batch. Please document the cap of 2,500 on items x `limit`
 (`batch_result_too_large`). Does `RateLimit-Remaining` on a batch response reflect the
@@ -72,6 +75,8 @@ is current, and is this expected? logicalEntryIds: 36adaac2-b629-52b9-98b6-79e1c
 
 RX-6 ASKED 2026-10-19 (shared Q11). `subscription.unavailableZones` is served but not in the contract schema; how
 does it differ from `missingZones`? Why is FRANCE a zone separate from EUROPE? (VE-3)
+  FRANCE part: DRAFT, not in the shared list; goes into the Slack follow-up with RX-17 to
+  RX-19.
 
 RX-7 ASKED 2026-10-19 (shared Q15). Can the PDF be updated to the served contract (cursor paging, row content,
 quota, `name` matching, base URL)? (VE-1)
@@ -102,7 +107,9 @@ RX-14 ASKED 2026-10-19 (shared Q04). Do the per-substance endpoints (impurity-li
 list or bulk route, or is per-substance lookup the intended way to get full coverage? Per
 substance, our source list is about 16,000 items per endpoint.
 
-RX-15 DRAFT. Are we fine to store a full local copy of all content accessible to our key
+RX-15 MOVED TO CONTRACT (2026-10-20, Kevin). Removed from the shared list before sending:
+storage and usage rights for the local copy will be covered in the contract with Relay X,
+which Kevin is drafting. Original question: Are we fine to store a full local copy of all content accessible to our key
 during the trial, for evaluation purposes?
 
 RX-16 ASKED 2026-10-19 (shared Q12). With a EUROPE subscription, do member-state territory codes (FR, DE, ...)
@@ -122,3 +129,8 @@ when an entry has more than two versions? (VE-17)
 RX-19 DRAFT. /texts?territory=EU reports `withheldByScope.count: 1`. Which text is withheld
 from our key, why (licence or right not yet established), and does it affect any constraint
 entries? /changes reported no withheld entries. (VE-20)
+
+RX-20 DRAFT. /substances/market-summary verdict. How are `status`, `statusBasis` and
+`statusMeans` derived? In our pilot, 8 CAS substances with EU constraint entries (returned
+by lookup and counted in market-summary `constraintCount`) show `INSUFFICIENT_DATA`. Which
+inputs and rules lead to that verdict? (pilot run 20261019T174653Z_substance_pilot_eu)
