@@ -134,3 +134,10 @@ RX-20 DRAFT. /substances/market-summary verdict. How are `status`, `statusBasis`
 `statusMeans` derived? In our pilot, 8 CAS substances with EU constraint entries (returned
 by lookup and counted in market-summary `constraintCount`) show `INSUFFICIENT_DATA`. Which
 inputs and rules lead to that verdict? (pilot run 20261019T174653Z_substance_pilot_eu)
+
+RX-21 DRAFT. Screening list codes. The contract names `PFAS_EPA_TSCA` and `IFRA_STANDARDS`
+as list codes of /substances/screening. For 100 EU catalogue substances we received neither,
+and received ECHA_DOSSIER_EVALUATION, ECHA_EU_POSITIVE_LIST, ECHA_CLH_PROCESS,
+ECHA_RESTRICTION_PROCESS, ECHA_SVHC_IDENTIFICATION, ECHA_SUBSTANCE_EVALUATION and
+IARC_MONOGRAPHS. What is the complete set of list codes, which of them are licensed to our
+key, and are IFRA standards included in our subscription? (VE-31)
