@@ -129,6 +129,38 @@ def run_keyed(client: RelayXClient, run_dir: Path, feed: str, specs: list[dict],
     return w.manifest("complete")
 
 
+class ResumeError(RuntimeError):
+    pass
+
+
+def _read_manifest(run_dir: Path) -> dict:
+    mp = run_dir / "manifest.json"
+    if not mp.exists():
+        raise ResumeError(f"no manifest.json in {run_dir}")
+    return json.loads(mp.read_text(encoding="utf-8"))
+
+
+def resume_list(client: RelayXClient, run_dir: Path) -> dict:
+    """Continue a list run in its own directory, with the parameters it was started with."""
+    m = _read_manifest(run_dir)
+    endpoint = "/" + m["feed"]
+    if endpoint not in LIST_KEYS:
+        raise ResumeError(f"{run_dir} is not a list run (feed {m['feed']!r})")
+    params = {k: v for k, v in m["params"].items() if k != "limit"}
+    return run_list(client, run_dir, endpoint, params, m["params"].get("limit", 200))
+
+
+def resume_keyed(client: RelayXClient, run_dir: Path, feed: str | None = None) -> dict:
+    """Continue a keyed run from its stored specs.json; calls already stored are skipped.
+    `feed`, if given, must match the run's feed (guards against resuming the wrong run)."""
+    m = _read_manifest(run_dir)
+    if not (run_dir / "specs.json").exists():
+        raise ResumeError(f"no specs.json in {run_dir}; not a keyed run")
+    if feed is not None and m["feed"] != feed:
+        raise ResumeError(f"{run_dir} is a {m['feed']!r} run, not {feed!r}")
+    return run_keyed(client, run_dir, m["feed"], [], m["params"])
+
+
 def run_lists(territory: str = "EU", out: Path = Path("data/raw/api"), limit: int = 200) -> list[dict]:
     """One run per corpus list (/texts, /coverage, /allergens) for a territory."""
     from datetime import datetime, timezone
@@ -147,13 +179,20 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("command", choices=["lists"])
     ap.add_argument("--territory", default="EU")
+    ap.add_argument("--resume", type=Path, nargs="+", metavar="RUN_DIR",
+                    help="continue these list runs in their own directories instead of starting new ones")
     ap.add_argument("--env", type=Path, default=Path(".env"))
     a = ap.parse_args(argv)
     from dotenv import load_dotenv
     load_dotenv(a.env)
-    for m in run_lists(a.territory):
+    if a.resume:
+        client = RelayXClient()
+        results = [resume_list(client, d) | {"run_dir": str(d)} for d in a.resume]
+    else:
+        results = run_lists(a.territory)
+    for m in results:
         print(json.dumps({k: m[k] for k in ("run_id", "status", "calls", "by_status", "units_requested", "run_dir")}))
-    return 0
+    return 0 if all(m["status"] == "complete" for m in results) else 1
 
 
 def _load_body(run_dir: Path, meta: dict):

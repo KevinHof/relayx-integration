@@ -97,15 +97,15 @@ python -m relayx.api_extract lists --territory EU
 Output: three run directories `data/raw/api/<UTCstamp>_{texts,coverage,allergens}_eu/`.
 One JSON line per list is printed with run id, status, calls and units.
 
-Resume: the command always starts new run directories. To continue an interrupted list in
-its existing directory (offset paging restarts after the rows already stored):
+Resume: without `--resume` the command always starts new run directories. To continue
+interrupted lists in their own directories (offset paging restarts after the rows already
+stored, with the parameters the run was started with; a complete run makes no call):
 
 ```powershell
-python -c "import json,sys; from pathlib import Path; from dotenv import load_dotenv; load_dotenv('.env'); from relayx.api_extract import run_list; from relayx.client import RelayXClient; d=Path(sys.argv[1]); m=json.loads((d/'manifest.json').read_text(encoding='utf-8')); p={k:v for k,v in m['params'].items() if k!='limit'}; print(run_list(RelayXClient(), d, '/'+m['feed'], p, m['params']['limit'])['status'])" data/raw/api/<run_dir>
+python -m relayx.api_extract lists --resume data/raw/api/<run_dir> [data/raw/api/<run_dir> ...]
 ```
 
-For three one-page lists it is usually simpler to rerun the command and load only the
-complete run directories.
+Exit code 0 only if every list is complete.
 
 Check: `manifest.json` `status` = `complete` and `by_status` only `200`; the run stops only
 when the rows received add up to `total`. Row totals for /texts: the sum of
@@ -126,17 +126,15 @@ python -m relayx.history_extract compare data/raw/api/<run_dir> --replay-run 202
 |---|---|---|
 | `--replay-run` | `20261019T143522Z_eu` | loaded replay run used for selection and comparison |
 | `--out` | `data/raw/api` | parent directory |
+| `--resume <run_dir>` | | continue an interrupted run (with `run`) |
 
 Output: `data/raw/api/<UTCstamp>_history_narrow_eu/`, with `specs.json` (the planned calls).
 `compare` prints a JSON summary: versions matched to feed rows on knownFrom = knownSince,
 keys present on one side only, content fields that differ, knowledge-block values.
 
-Resume: `run` always starts a new directory. To continue in the existing one (calls already
-stored are skipped, `specs.json` is reused):
-
-```powershell
-python -c "import json,sys; from pathlib import Path; from dotenv import load_dotenv; load_dotenv('.env'); from relayx.api_extract import run_keyed; from relayx.client import RelayXClient; d=Path(sys.argv[1]); m=json.loads((d/'manifest.json').read_text(encoding='utf-8')); print(run_keyed(RelayXClient(), d, m['feed'], [], m['params'])['status'])" data/raw/api/<run_dir>
-```
+Resume: `python -m relayx.history_extract run --resume data/raw/api/<run_dir>`. Calls already
+stored are skipped, `specs.json` and the original parameters are reused, and the command
+refuses a directory that is not a history run.
 
 Check: `manifest.json` `calls` = number of entries in `specs.json`, `by_status` only `200`;
 `compare` reports `history_versions_unmatched` = 0 (2026-10-19: all 288 versions matched).
@@ -155,12 +153,14 @@ python -m relayx.substance_pilot run
 python -m relayx.substance_pilot analyse data/raw/api/<run_dir>
 ```
 
-Options: `--out` (default `data/raw/api`). Output: `data/raw/api/<UTCstamp>_substance_pilot_eu/`
+Options: `--out` (default `data/raw/api`), `--resume <run_dir>`. Output:
+`data/raw/api/<UTCstamp>_substance_pilot_eu/`
 with `sample.json` (items, strata, NOT_QUERYABLE items) and `specs.json`. `analyse` prints
 the per-stratum comparison used in results/2026-10-19-phase2-extraction.md.
 
-Resume: same one-liner as section 4 (keyed run). A lookup:batch answer with
-`truncated: true` gets its unevaluated items appended as a new call, also on resume.
+Resume: `python -m relayx.substance_pilot run --resume data/raw/api/<run_dir>` (same behaviour
+as section 4). A lookup:batch answer with `truncated: true` gets its unevaluated items
+appended as a new call, also on resume.
 
 Check: `by_status` only `200`; the number of lookup items answered equals the sample size;
 `analyse` output against the previous results file.
@@ -222,7 +222,7 @@ python -m pytest -q tests/test_changes_replay.py
 ```
 
 No database or API access needed; HTTP calls are faked in the tests. Expected: all pass
-(28 on 2026-10-20).
+(36 on 2026-10-20).
 
 ## 10. After a run
 

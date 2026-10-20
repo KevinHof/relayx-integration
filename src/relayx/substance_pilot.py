@@ -9,6 +9,7 @@ opinions, which do not accept `name`; they are recorded as NOT_QUERYABLE.
 
 Usage:
     python -m relayx.substance_pilot run
+    python -m relayx.substance_pilot run --resume <run_dir>
 """
 from __future__ import annotations
 
@@ -19,7 +20,7 @@ from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
 
-from .api_extract import run_keyed
+from .api_extract import resume_keyed, run_keyed
 from .client import RelayXClient
 from .completeness import draw_sample, read_catalogue
 
@@ -186,12 +187,18 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("command", choices=["run", "analyse"])
     ap.add_argument("run_dir", type=Path, nargs="?")
     ap.add_argument("--out", type=Path, default=Path("data/raw/api"))
+    ap.add_argument("--resume", type=Path, metavar="RUN_DIR", help="continue this pilot run")
     ap.add_argument("--env", type=Path, default=Path(".env"))
     a = ap.parse_args(argv)
     from dotenv import load_dotenv
     load_dotenv(a.env)
     if a.command == "analyse":
         print(json.dumps(analyse(a.run_dir), indent=1, ensure_ascii=False, default=str))
+        return 0
+    if a.resume:
+        m = resume_keyed(RelayXClient(), a.resume, "substance_pilot")
+        print(json.dumps({k: m[k] for k in ("run_id", "status", "calls", "by_status", "units_requested")}))
+        print("run dir:", a.resume)
         return 0
     sample = draw_sample(read_catalogue(), N, SEED)
     specs, not_queryable = build_specs(sample)

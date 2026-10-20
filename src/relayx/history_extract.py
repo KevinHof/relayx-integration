@@ -7,6 +7,7 @@ whose last row is RETRACTED. Ids are read from relayx_raw.entry_version, verbati
 
 Usage:
     python -m relayx.history_extract run [--replay-run <run_id>]
+    python -m relayx.history_extract run --resume <history_run_dir>
     python -m relayx.history_extract compare <history_run_dir> [--replay-run <run_id>]
 """
 from __future__ import annotations
@@ -18,7 +19,7 @@ from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
 
-from .api_extract import run_keyed
+from .api_extract import resume_keyed, run_keyed
 from .client import RelayXClient
 from .db import connect
 
@@ -106,11 +107,17 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("history_dir", type=Path, nargs="?")
     ap.add_argument("--replay-run", default=DEFAULT_REPLAY)
     ap.add_argument("--out", type=Path, default=Path("data/raw/api"))
+    ap.add_argument("--resume", type=Path, metavar="RUN_DIR", help="continue this history run")
     ap.add_argument("--env", type=Path, default=Path(".env"))
     a = ap.parse_args(argv)
     from dotenv import load_dotenv
     load_dotenv(a.env)
-    if a.command == "run":
+    if a.command == "run" and a.resume:
+        rd = a.resume
+        m = resume_keyed(RelayXClient(), rd, "entries_history")
+        print(json.dumps({k: m[k] for k in ("run_id", "status", "calls", "by_status", "units_requested")}))
+        print("run dir:", rd)
+    elif a.command == "run":
         ids = narrow_ids(a.replay_run)
         stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
         rd = a.out / f"{stamp}_history_narrow_eu"
