@@ -95,3 +95,7 @@ with `isCurrent: true`; `supersededByVersionId` points to version ids that are n
 for 4 entries feed order and the supersession marker disagree (VE-16 to VE-18). Options to
 decide in the phase 4 ADR: feed order, supersession marker by elimination, latest
 `knownSince`, or flag as ambiguous and keep both. Asked to Relay X (RX-17, RX-18).
+
+Q11 OPEN (2026-10-20). CosIng source for F3 (docs/plans/2026-10-20-f3-cosing-bridge.md):
+which CosIng export is used, and where it is loaded in covalo-local-complete (schema, table).
+To be confirmed by Kevin; file name, download date and SHA-256 are recorded at profiling.
