@@ -5,6 +5,7 @@ by a "-- <title>" comment line and is printed as a tab-separated table.
 The transaction is rolled back at the end, so nothing persists.
 
     python -m relayx.provisional_report sql/provisional/f1_matching_assessment.sql
+    python -m relayx.provisional_report sql/provisional/f1b_additions.sql --setup sql/provisional/f1_matching_assessment.sql
 """
 from __future__ import annotations
 
@@ -32,6 +33,8 @@ def split_report(sql: str) -> tuple[str, list[tuple[str, str]]]:
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("sql_file", type=Path)
+    ap.add_argument("--setup", type=Path, action="append", default=[],
+                    help="run the setup part of this report file first (repeatable), e.g. to reuse its TEMP objects")
     ap.add_argument("--env", default=".env")
     ap.add_argument("--timeout", type=int, default=300, help="statement timeout in seconds")
     a = ap.parse_args(argv)
@@ -42,6 +45,10 @@ def main(argv: list[str] | None = None) -> int:
     with connect() as conn:
         with conn.cursor() as cur:
             cur.execute(f"SET LOCAL statement_timeout = '{a.timeout}s'")
+            for extra in a.setup:
+                t0 = time.monotonic()
+                cur.execute(split_report(extra.read_text(encoding="utf-8-sig").replace("\r\n", "\n"))[0])
+                print(f"setup {extra.name}: {time.monotonic() - t0:.0f} s", file=sys.stderr, flush=True)
             t0 = time.monotonic()
             cur.execute(setup)
             print(f"setup: {time.monotonic() - t0:.0f} s", file=sys.stderr, flush=True)
