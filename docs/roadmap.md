@@ -19,6 +19,21 @@ Phases run in this order. Each one has a gate; do not start a phase before its g
       (texts, coverage, allergens), then per-substance endpoints (lookup, market-summary,
       impurity-limits, screening, opinions) and entry history as background runs, each
       with a completeness report.
+   Decisions 2026-10-20 (Kevin): market-summary excluded from the full run (verdict question
+   RX-20); opinions validated on a targeted sample of about 50 Annex III / V substances
+   (if lookup matches the endpoint, opinions come from lookup and the separate run is
+   dropped); impurity limits checked on about 20 known contaminants. Full per-substance
+   run waits for fast-track F step 1 and the step 2 lookup plan.
+F. Fast-track (2026-10-20): pre-signing matching assessment. The contract with Relay X is
+   signed only after the full scope of match and mismatch between Relay X and Covalo data
+   is known. Runs on raw data with provisional SQL (sql/provisional/), every object and
+   figure labelled PROVISIONAL, replaced later by the phase 8 matching. Does not pass any
+   phase gate.
+   - Step 1 (local, no API calls): Covalo identifier inventory, overlap with replay
+     identifiers and the Relay X catalogue, provisional coverage by identifier type, size
+     of the per-substance source list including Covalo identifiers.
+   - Step 2 (proposal): lookup run with Covalo identifiers first, so every Covalo
+     identifier gets Relay X's own status; mismatch classification.
 3. Structure profiling of every extracted content type, not only constraint entries: field dictionary in docs/data-model/, profiling queries in sql/profiling/. Gate: Kevin reviews the profile.
 4. Core model, decided per content type in order of use: grains, entities and identifier model as an ADR per content type, based on the profiling. Constraint entries first.
 5. Normalisation: raw JSONB into core tables, reproducible from raw, with tests.
