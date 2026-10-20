@@ -1,0 +1,308 @@
+﻿## 1a. Per legal text: id, title, status, constraintCount, current entries and annexes (from entries and from /coverage)
+official_ref	celex	document_type	status	constraint_count	replay_rows	current_entries	annexes_in_entries	coverage_scopes	title
+32009R1223	32009R1223	REGULATION	IN_FORCE	4350	4350	4235	Annex II (1866); Annex III (589); Annex IV (154); Annex V (68); Annex VI (33); Article 15(1) (369); Article 15(2) (1156)	Annex II; Annex III; Annex IV; Annex V; Annex VI; Article 15(1); Article 15(2)	Regulation (EC) No 1223/2009 of the European Parliament and of the Council on cosmetic products
+32008R1272	32008R1272	REGULATION	IN_FORCE	2364	2364	2346	Annex VI Table 3 (2346)	Annex VI Table 3	Regulation (EC) No 1272/2008 on classification, labelling and packaging of substances and mixtures (CLP), Anne
+EU_REACH_ANNEX_XVII		REGULATION	(null)	2108	2108	2108	REACH Annex XVII (2108)	REACH Annex XVII	Regulation (EC) No 1907/2006 (REACH), Annex XVII, Restrictions on the manufacture, placing on the market and u
+EU_REACH	32006R1907R(01)	REGULATION	IN_FORCE	2059	2059	2058	CMR category 1A (331); CMR category 1B (854); Exemptions (75); Mutagens (431); REACH Annex V (42); Toxic category 1 (23); Toxic category 2 (302)	CMR category 1A; CMR category 1B; Exemptions; Mutagens; REACH Annex V; Toxic category 1; Toxic category 2	Regulation (EC) No 1907/2006 (REACH)
+32026R1383	32026R1383	REGULATION	IN_FORCE	1644	1644	1644	Annex A — CITES Appendix I (616); Annex A — CITES Appendix II (114); Annex A — CITES Appendix I/II (7); Annex A — CITES Appendix III (2); Annex A — hors Appendices CITES (20); Annex B — CITES Appendix II (550); Annex B — CITES Appendix III (1); Annex B — hors Appendices CITES (14); Annex C — CITES Appendix III (236); Annex D — CITES Appendix III (7); Annex D — hors Appendices CITES (77)	Annex A — CITES Appendix I; Annex A — CITES Appendix II; Annex A — CITES Appendix I/II; Annex A — CITES Appendix III; Annex A — hors Appendices CITES; Annex B — CITES Appendix II; Annex B — CITES Appendix III; Annex B — hors Appendices CITES; Annex C — CITES Appendix III; Annex D — CITES Appendix III; Annex D — hors Appendices CITES	Règlement (UE) 2026/1383 de la Commission du 22 juin 2026 modifiant le règlement (CE) n° 338/97 du Conseil pou
+32009R0790	32009R0790	REGULATION	IN_FORCE	811	811	805	Annex VI Table 3 (805)	Annex VI Table 3	COMMISSION REGULATION (EC) No 790/2009
+32011R0286	32011R0286	REGULATION	IN_FORCE	596	596	596	Annex VI Table 3 (596)	Annex VI Table 3	COMMISSION REGULATION (EU) No 286/2011
+EU_REACH_CANDIDATE_LIST		REGULATION	(null)	253	253	253	REACH Candidate List (253)	REACH Candidate List	Regulation (EC) No 1907/2006 (REACH), Candidate List of substances of very high concern (SVHC)
+32009R0790-corr	32009R0790	CORRIGENDUM	IN_FORCE	200	200	197	Annex VI Table 3 (197)	Annex VI Table 3	Rectificatif à l'adaptation au progrès technique ATP01 du règlement (CE) n° 1272/2008
+32025R0006	32025R0006	REGULATION	IN_FORCE	195	195	195	Annex (1) — species of Annex A to Regulation (EC) No 338/97 (5); Annex (2) — species of Annex B to Regulation (EC) No 338/97 (190)	Annex (1) — species of Annex A to Regulation (EC) No 338/97; Annex (2) — species of Annex B to Regulation (EC) No 338/97	Commission Implementing Regulation (EU) 2025/6 of 6 January 2025 prohibiting the introduction into the Union o
+EU_REACH_ANNEX_XIV		REGULATION	(null)	59	59	59	REACH Annex XIV (59)	REACH Annex XIV	Regulation (EC) No 1907/2006 (REACH), Annex XIV, List of substances subject to authorisation
+32021R0849	32021R0849	REGULATION	IN_FORCE	57	57	57	Annex VI Table 3 (57)	Annex VI Table 3	COMMISSION DELEGATED REGULATION (EU) 2021/849
+32020R1182	32020R1182	REGULATION	IN_FORCE	54	54	54	Annex VI Table 3 (54)		Commission Delegated Regulation (EU) 2020/1182 of 19 May 2020 amending, for the purposes of its adaptation to 
+32022R0692	32022R0692	REGULATION	IN_FORCE	54	54	54	Annex VI Table 3 (54)	Annex VI Table 3	COMMISSION DELEGATED REGULATION (EU) 2022/692
+32024R0197	32024R0197	REGULATION	IN_FORCE	51	51	51	Annex VI Table 3 (51)	Annex VI Table 3	COMMISSION DELEGATED REGULATION (EU) 2024/197
+32024R2564	32024R2564	REGULATION	IN_FORCE	47	47	47	Annex VI Table 3 (47)	Annex VI Table 3	COMMISSION DELEGATED REGULATION (EU) 2024/2564
+32017R0776	32017R0776	REGULATION	IN_FORCE	36	36	36	Annex VI Table 3 (36)		Commission Regulation (EU) 2017/776 of 4 May 2017 amending, for the purposes of its adaptation to technical an
+32016R1179	32016R1179	REGULATION	IN_FORCE	35	35	35	Annex VI Table 3 (35)	Annex VI Table 3	COMMISSION REGULATION (EU) 2016/1179
+EU_POPS		REGULATION	(null)	35	35	35	Annex I, part A (1); POPs Regulation (34)	POPs Regulation	Regulation (EU) 2019/1021 on persistent organic pollutants
+32013R0944	32013R0944	REGULATION	IN_FORCE	34	34	33	Annex VI Table 3 (33)	Annex VI Table 3	COMMISSION REGULATION (EU) No 944/2013
+32018R1480	32018R1480	REGULATION	IN_FORCE	33	33	33	Annex VI Table 3 (33)	Annex VI Table 3	COMMISSION REGULATION (EU) 2018/1480
+32025R1222	32025R1222	REGULATION	IN_FORCE	32	32	32	Annex VI Table 3 (32)	Annex VI Table 3	Règlement délégué (UE) 2025/1222 de la Commission du 2 avril 2025 modifiant le règlement (CE) n° 1272/2008 en 
+32015R1221	32015R1221	REGULATION	IN_FORCE	30	30	30	Annex VI Table 3 (30)		Commission Regulation (EU) 2015/1221 of 24 July 2015 amending Regulation (EC) No 1272/2008 of the European Par
+32020R0217	32020R0217	REGULATION	IN_FORCE	27	27	26	Annex VI Table 3 (26)	Annex VI Table 3	COMMISSION DELEGATED REGULATION (EU) 2020/217
+32014R0605	32014R0605	REGULATION	IN_FORCE	20	20	18	Annex VI Table 3 (18)	Annex VI Table 3	COMMISSION REGULATION (EU) No 605/2014
+32012R0618	32012R0618	REGULATION	IN_FORCE	15	15	15	Annex VI Table 3 (15)	Annex VI Table 3	COMMISSION REGULATION (EU) No 618/2012
+32023R1435	32023R1435	REGULATION	IN_FORCE	4	4	4	Annex VI Table 3 (4)		Commission Delegated Regulation (EU) 2023/1435 of 2 May 2023 amending Regulation (EC) No 1272/2008 of the Euro
+32013R0487	32013R0487	REGULATION	IN_FORCE	1	1	1	Annex VI Table 3 (1)	Annex VI Table 3	COMMISSION REGULATION (EU) No 487/2013
+32018R0669	32018R0669	REGULATION	IN_FORCE	1	1	1	Annex VI Table 3 (1)	Annex VI Table 3	Commission Regulation (EU) 2018/669 of 16 April 2018 amending, for the purposes of its adaptation to technical
+31997R0338	31997R0338	REGULATION	IN_FORCE	0	0	0			Règlement (CE) nº 338/97 du Conseil du 9 décembre 1996 relatif à la protection des espèces de faune et de flor
+32008R0987	32008R0987	REGULATION	IN_FORCE	0	0	0			Commission Regulation (EC) No 987/2008 of 8 October 2008 amending Regulation (EC) No 1907/2006 of the European
+32013R0344	32013R0344	REGULATION	IN_FORCE	0	0	0			Commission Regulation (EU) No 344/2013 of 4 April 2013 amending Annexes II, III, V and VI to Regulation (EC) N
+32013R0483	32013R0483	REGULATION	IN_FORCE	0	0	0			Commission Regulation (EU) No 483/2013 of 24 May 2013 amending Annex III to Regulation (EC) No 1223/2009 of th
+32013R0658	32013R0658	REGULATION	IN_FORCE	0	0	0			Commission Regulation (EU) No 658/2013 of 10 July 2013 amending Annexes II and III to Regulation (EC) No 1223/
+32013R1197	32013R1197	REGULATION	IN_FORCE	0	0	0			Commission Regulation (EU) No 1197/2013 of 25 November 2013 amending Annex III to Regulation (EC) No 1223/2009
+32014R0358	32014R0358	REGULATION	IN_FORCE	0	0	0			Commission Regulation (EU) No 358/2014 of 9 April 2014 amending Annexes II and V to Regulation (EC) No 1223/20
+32014R0866	32014R0866	REGULATION	IN_FORCE	0	0	0			Commission Regulation (EU) No 866/2014 of 8 August 2014 amending Annexes III, V and VI to Regulation (EC) No 1
+32014R1003	32014R1003	REGULATION	IN_FORCE	0	0	0			Commission Regulation (EU) No 1003/2014 of 18 September 2014 amending Annex V to Regulation (EC) No 1223/2009 
+32014R1004	32014R1004	REGULATION	IN_FORCE	0	0	0			Commission Regulation (EU) No 1004/2014 of 18 September 2014 amending Annex V to Regulation (EC) No 1223/2009 
+32014R1297	32014R1297	REGULATION	IN_FORCE	0	0	0		Annex VI Table 3	COMMISSION REGULATION (EU) No 1297/2014
+32015R1190	32015R1190	REGULATION	IN_FORCE	0	0	0			2015/1190 (32015R1190)
+32015R1298	32015R1298	REGULATION	IN_FORCE	0	0	0			Commission Regulation (EU) 2015/1298 of 28 July 2015 amending Annexes II and VI to Regulation (EC) No 1223/200
+32016R0314	32016R0314	REGULATION	IN_FORCE	0	0	0			Commission Regulation (EU) 2016/314 of 4 March 2016 amending Annex III to Regulation (EC) No 1223/2009 of the 
+32016R0621	32016R0621	REGULATION	IN_FORCE	0	0	0			2016/621 (32016R0621)
+32016R0622	32016R0622	REGULATION	IN_FORCE	0	0	0			2016/622 (32016R0622)
+32016R0918	32016R0918	REGULATION	IN_FORCE	0	0	0		Annex VI Table 3	COMMISSION REGULATION (EU) 2016/918
+32016R1120	32016R1120	REGULATION	IN_FORCE	0	0	0			Commission Regulation (EU) 2016/1120 of 11 July 2016 amending Annex IV to Regulation (EC) No 1223/2009 of the 
+32016R1121	32016R1121	REGULATION	IN_FORCE	0	0	0			Commission Regulation (EU) 2016/1121 of 11 July 2016 amending Annex V to Regulation (EC) No 1223/2009 of the E
+32016R1143	32016R1143	REGULATION	IN_FORCE	0	0	0			2019/1857 (32016R1143)
+32016R1198	32016R1198	REGULATION	IN_FORCE	0	0	0			2016/1198 (32016R1198)
+32017R0237	32017R0237	REGULATION	IN_FORCE	0	0	0			Commission Regulation (EU) 2017/237 of 10 February 2017 amending Annex III to Regulation (EC) No 1223/2009 of 
+32017R0238	32017R0238	REGULATION	IN_FORCE	0	0	0			Commission Regulation (EU) 2017/238 of 10 February 2017 amending Annex VI to Regulation (EC) No 1223/2009 of t
+32017R0745	32017R0745	REGULATION	IN_FORCE	0	0	0			2017/745 (32017R0745)
+32017R1224	32017R1224	REGULATION	IN_FORCE	0	0	0			2017/1224 (32017R1224)
+32017R1410	32017R1410	REGULATION	IN_FORCE	0	0	0			Commission Regulation (EU) 2017/1410 of 2 August 2017 amending Annexes II and III to Regulation (EC) No 1223/2
+32017R1413	32017R1413	REGULATION	IN_FORCE	0	0	0			2017/1413 (32017R1413)
+32017R2228	32017R2228	REGULATION	IN_FORCE	0	0	0			Commission Regulation (EU) 2017/2228 of 4 December 2017 amending Annex III to Regulation (EC) No 1223/2009 of 
+32018R0885	32018R0885	REGULATION	IN_FORCE	0	0	0			Commission Regulation (EU) 2018/885 of 20 June 2018 amending Annex VI to Regulation (EC) No 1223/2009 of the E
+32018R0978	32018R0978	REGULATION	IN_FORCE	0	0	0			Commission Regulation (EU) 2018/978 of 9 July 2018 amending Annexes II and III to Regulation (EC) No 1223/2009
+32018R1847	32018R1847	REGULATION	IN_FORCE	0	0	0			Commission Regulation (EU) 2018/1847 of 26 November 2018 amending Annex V to Regulation (EC) No 1223/2009 of t
+32019R0521	32019R0521	REGULATION	IN_FORCE	0	0	0		Annex VI Table 3	COMMISSION REGULATION (EU) 2019/521
+32019R0680	32019R0680	REGULATION	IN_FORCE	0	0	0			Commission Regulation (EU) 2019/680 of 30 April 2019 amending Annex VI to Regulation (EC) No 1223/2009 of the 
+32019R0681	32019R0681	REGULATION	IN_FORCE	0	0	0			Commission Regulation (EU) 2019/681 of 30 April 2019 amending Annex II to Regulation (EC) No 1223/2009 of the 
+32019R0698	32019R0698	REGULATION	IN_FORCE	0	0	0			2019/698 (32019R0698)
+32019R0831	32019R0831	REGULATION	IN_FORCE	0	0	0			Omnibus II (32019R0831)
+32019R1257	32019R1257	REGULATION	IN_FORCE	0	0	0			Commission Regulation (EU) 2019/1257 of 23 July 2019 correcting the Bulgarian language version of Regulation (
+32019R1691	32019R1691	REGULATION	IN_FORCE	0	0	0			Commission Regulation (EU) 2019/1691 of 9 October 2019 amending Annex V to Regulation (EC) No 1907/2006 of the
+32019R1857	32019R1857	REGULATION	IN_FORCE	0	0	0			2019/1857 (32019R1857)
+32019R1858	32019R1858	REGULATION	IN_FORCE	0	0	0			2019/1858 (32019R1858)
+32019R1966	32019R1966	REGULATION	IN_FORCE	0	0	0			Omnibus II (32019R1966)
+32020R1682	32020R1682	REGULATION	IN_FORCE	0	0	0			Commission Regulation (EU) 2020/1682 of 12 November 2020 amending Annex III to Regulation (EC) No 1223/2009 of
+32020R1683	32020R1683	REGULATION	IN_FORCE	0	0	0			2020/1683 (32020R1683)
+32020R1684	32020R1684	REGULATION	IN_FORCE	0	0	0			2020/1684 (32020R1684)
+32021R0850	32021R0850	REGULATION	IN_FORCE	0	0	0			Omnibus III (32021R0850)
+32021R1099	32021R1099	REGULATION	IN_FORCE	0	0	0			2021/1099 (32021R1099)
+32021R1902	32021R1902	REGULATION	IN_FORCE	0	0	0			Omnibus IV (32021R1902)
+32022R0135	32022R0135	REGULATION	IN_FORCE	0	0	0			2022/135 (32022R0135)
+32022R1176	32022R1176	REGULATION	IN_FORCE	0	0	0			2022/1176 (32022R1176)
+32022R1181	32022R1181	REGULATION	IN_FORCE	0	0	0			2022/1181 (32022R1181)
+32022R1531	32022R1531	REGULATION	IN_FORCE	0	0	0			Omnibus V (32022R1531)
+32022R2195	32022R2195	REGULATION	IN_FORCE	0	0	0			2022/2195 (32022R2195)
+32023R0707	32023R0707	REGULATION	IN_FORCE	0	0	0			Commission Delegated Regulation (EU) 2023/707 of 19 December 2022 amending Regulation (EC) No 1272/2008 as reg
+32023R0866	32023R0866	REGULATION	IN_FORCE	0	0	0			Commission Delegated Regulation (EU) 2023/866 of 24 February 2023 amending Regulation (EU) 2019/1021 of the Eu
+32023R0923	32023R0923	REGULATION	IN_FORCE	0	0	0			Commission Regulation (EU) 2023/923 of 3 May 2023 amending Annex XVII to Regulation (EC) No 1907/2006 as regar
+32023R1132	32023R1132	REGULATION	IN_FORCE	0	0	0			Commission Regulation (EU) 2023/1132 of 8 June 2023 amending Regulation (EC) No 1907/2006 as regards carcinoge
+32023R1434	32023R1434	REGULATION	IN_FORCE	0	0	0			Commission Delegated Regulation (EU) 2023/1434 of 25 April 2023 amending, for the purposes of its adaptation t
+32023R1464	32023R1464	REGULATION	IN_FORCE	0	0	0			Commission Regulation (EU) 2023/1464 of 14 July 2023 amending Annex XVII to Regulation (EC) No 1907/2006 of th
+32023R1490	32023R1490	REGULATION	IN_FORCE	0	0	0			Omnibus VI (32023R1490)
+32023R1545	32023R1545	REGULATION	IN_FORCE	0	0	0			2023/1545 (32023R1545)
+32023R1608	32023R1608	REGULATION	IN_FORCE	0	0	0			Commission Delegated Regulation (EU) 2023/1608 of 30 May 2023 amending Annex I to Regulation (EU) 2019/1021 of
+32023R2055	32023R2055	REGULATION	IN_FORCE	0	0	0			Règlement (UE) 2023/2055 de la Commission du 25 septembre 2023 modifiant l'annexe XVII de REACH en ce qui conc
+32023R2482	32023R2482	REGULATION	IN_FORCE	0	0	0			Commission Regulation (EU) 2023/2482 of 13 November 2023 amending Regulation (EC) No 1907/2006 as regards the 
+32024R0858	32024R0858	REGULATION	IN_FORCE	0	0	0			2024/858 (32024R0858)
+32024R0996	32024R0996	REGULATION	IN_FORCE	0	0	0			2024/996 (32024R0996)
+32024R1328	32024R1328	REGULATION	IN_FORCE	0	0	0			Commission Regulation (EU) 2024/1328 of 16 May 2024 amending Annex XVII to Regulation (EC) No 1907/2006 as reg
+32024R2462	32024R2462	REGULATION	IN_FORCE	0	0	0			Commission Regulation (EU) 2024/2462 of 19 September 2024 amending Annex XVII to Regulation (EC) No 1907/2006 
+32024R2555	32024R2555	REGULATION	IN_FORCE	0	0	0			Commission Delegated Regulation (EU) 2024/2555 of 21 March 2024 amending Regulation (EU) 2019/1021 of the Euro
+32024R2570	32024R2570	REGULATION	IN_FORCE	0	0	0			Commission Delegated Regulation (EU) 2024/2570 of 22 July 2024 amending Regulation (EU) 2019/1021 of the Europ
+32024R2865	32024R2865	REGULATION	IN_FORCE	0	0	0			Règlement (UE) 2024/2865 du Parlement européen et du Conseil du 23 octobre 2024 modifiant le règlement (CE) n°
+32025R0660	32025R0660	REGULATION	IN_FORCE	0	0	0			Règlement (UE) 2025/660 de la Commission du 1er avril 2025 modifiant l'annexe XVII de REACH en ce qui concerne
+32025R0718	32025R0718	REGULATION	IN_FORCE	0	0	0			Commission Delegated Regulation (EU) 2025/718 of 14 April 2025 amending Regulation (EU) 2019/1021 of the Europ
+32025R0843	32025R0843	REGULATION	IN_FORCE	0	0	0			Commission Delegated Regulation (EU) 2025/843 of 5 May 2025 amending Annex I to Regulation (EU) 2019/1021 of t
+32025R0877	32025R0877	REGULATION	IN_FORCE	0	0	0			Omnibus VII (32025R0877)
+32025R1090	32025R1090	REGULATION	IN_FORCE	0	0	0			Règlement (UE) 2025/1090 de la Commission du 2 juin 2025 modifiant l'annexe XVII de REACH en ce qui concerne l
+32025R1399	32025R1399	REGULATION	IN_FORCE	0	0	0			Commission Delegated Regulation (EU) 2025/1399 of 5 May 2025 amending Annex I to Regulation (EU) 2019/1021 of 
+32025R1482	32025R1482	REGULATION	IN_FORCE	0	0	0			Commission Delegated Regulation (EU) 2025/1482 of 24 July 2025 amending Regulation (EU) 2019/1021 of the Europ
+32025R1731	32025R1731	REGULATION	IN_FORCE	0	0	0			Règlement (UE) 2025/1731 du 8 août 2025 modifiant le règlement (CE) n° 1907/2006 (REACH) en ce qui concerne le
+32025R1930	32025R1930	REGULATION	IN_FORCE	0	0	0			Commission Delegated Regulation (EU) 2025/1930 of 15 May 2025 amending Regulation (EU) 2019/1021 of the Europe
+32025R1988	32025R1988	REGULATION	IN_FORCE	0	0	0			Règlement (UE) 2025/1988 de la Commission du 2 octobre 2025 modifiant l'annexe XVII de REACH en ce qui concern
+32025R1988R(03)	32025R1988R(03)	CORRIGENDUM	IN_FORCE	0	0	0			Corrigendum to Commission Regulation (EU) 2025/1988 of 2 October 2025 amending Annex XVII to Regulation (EC) N
+32026R0078	32026R0078	REGULATION	IN_FORCE	0	0	0			Omnibus VIII (32026R0078)
+32026R0859	32026R0859	REGULATION	IN_FORCE	0	0	0			Règlement (UE) 2026/859 de la Commission du 20 avril 2026 modifiant l'annexe XVII de REACH en ce qui concerne 
+32026R0909	32026R0909	REGULATION	IN_FORCE	0	0	0			2026/909 (32026R0909)
+32026R1168	32026R1168	REGULATION	IN_FORCE	0	0	0			Règlement (UE) 2026/1168 de la Commission du 1er juin 2026 modifiant l'annexe XVII de REACH en ce qui concerne
+32026R1423	32026R1423	REGULATION	IN_FORCE	0	0	0			Commission Delegated Regulation (EU) 2026/1423 of 30 June 2026 amending Regulation (EU) 2019/1021 of the Europ
+
+## 1b. Texts: totals and consistency checks
+texts	sum_constraint_count	status_null	zero_constraints	count_differs_from_replay	entry_text_refs_not_in_texts
+115	15205	4	86	0	0
+
+## 1c. Texts by status and document type
+status	document_type	texts	constraints
+IN_FORCE	REGULATION	109	12550
+(null)	REGULATION	4	2455
+IN_FORCE	CORRIGENDUM	2	200
+
+## 1d. Texts without entries (constraintCount 0): amended act as served in `amends`, else from the title
+amends	from_title	texts	official_refs
+{"title": "Regulation (EC) No 1223/2009 of the European Parliament and of the Council on cosmetic products", "officialRef": "32009R1223"}	title names no base act	30	32015R1190, 32016R0621, 32016R0622, 32016R1143, 32016R1198, 32017R0745, 32017R1224, 32017R1413, 32019R0698, 32019R0831, 32019R1857, 32019R1858, 32019R1966, 32020R1683, 32020R1684, 32021R0850, 32021R1099, 32021R1902, 32022R0135, 32022R1176, 32022R1181, 32022R1531, 32022R2195, 32023R1490, 32023R1545, 32024R0858, 32024R0996, 32025R0877, 32026R0078, 32026R0909
+{"title": "Regulation (EC) No 1272/2008 on classification, labelling and packaging of substances and mixtures (CLP), Annex VI Table 3", "officialRef": "32008R1272"}	title: 1223/2009 (Cosmetics)	23	32013R0344, 32013R0483, 32013R0658, 32013R1197, 32014R0358, 32014R0866, 32014R1003, 32014R1004, 32015R1298, 32016R0314, 32016R1120, 32016R1121, 32017R0237, 32017R0238, 32017R1410, 32017R2228, 32018R0885, 32018R0978, 32018R1847, 32019R0680, 32019R0681, 32019R1257, 32020R1682
+{"title": "Regulation (EU) 2019/1021 on persistent organic pollutants", "officialRef": "EU_POPS"}	title: 2019/1021 (POPs)	10	32023R0866, 32023R1608, 32024R2555, 32024R2570, 32025R0718, 32025R0843, 32025R1399, 32025R1482, 32025R1930, 32026R1423
+(null)	title: 1907/2006 (REACH)	7	32023R0923, 32023R1132, 32023R1464, 32023R2482, 32024R1328, 32024R2462, 32025R1988R(03)
+{"title": "Regulation (EC) No 1907/2006 (REACH), Annex XVII, Restrictions on the manufacture, placing on the market and use of certain dangerous substances", "officialRef": "EU_REACH_ANNEX_XVII"}	title: 1907/2006 (REACH)	6	32023R2055, 32025R0660, 32025R1090, 32025R1988, 32026R0859, 32026R1168
+{"title": "Regulation (EC) No 1272/2008 on classification, labelling and packaging of substances and mixtures (CLP), Annex VI Table 3", "officialRef": "32008R1272"}	title: 1272/2008 (CLP)	3	32023R0707, 32023R1434, 32024R2865
+{"title": "Regulation (EC) No 1272/2008 on classification, labelling and packaging of substances and mixtures (CLP), Annex VI Table 3", "officialRef": "32008R1272"}	title names no base act	3	32014R1297, 32016R0918, 32019R0521
+{"title": "Regulation (EC) No 1907/2006 (REACH)", "officialRef": "EU_REACH"}	title: 1907/2006 (REACH)	3	32008R0987, 32019R1691, 32025R1731
+(null)	title: 338/97 (CITES)	1	31997R0338
+
+## 2a. Raw category values on current entries: annexType, nature, entryScope
+field	value	current_entries
+annexType	CLP_HARMONISED	4471
+annexType	PROHIBITED	3426
+annexType	RESTRICTED	2951
+annexType	INVENTORY_LISTED	1644
+annexType	CMR_1B	1587
+annexType	CMR_1A	354
+annexType	SVHC_CANDIDATE	253
+annexType	COLORANT	154
+annexType	EXEMPTION	117
+annexType	PRESERVATIVE	68
+annexType	UV_FILTER	33
+entryScope	SINGLE	14286
+entryScope	GROUP	758
+entryScope	GENERIC_CLASS	14
+nature	LITERAL_ENTRY	13504
+nature	DERIVED_BY_LAW	1554
+
+## 2b. annexTypeMeans as served (one per annexType)
+annex_type	annex_type_means
+CLP_HARMONISED	Harmonised hazard classification, not a cosmetic rule. It may TRIGGER one · see constraints whose nature is DERIVED_BY_LAW.
+CMR_1A	Dedicated CMR listing. The category drives the derogation regime, which differs between category 1A/1B and category 2.
+CMR_1B	Dedicated CMR listing. The category drives the derogation regime, which differs between category 1A/1B and category 2.
+COLORANT	Positive list for that specific function. Listing authorises the substance FOR THIS FUNCTION only, under the stated conditions; absence means not authorised for it.
+EXEMPTION	Carve-out from a rule stated elsewhere. This entry LIFTS or narrows another constraint · it is not itself a restriction.
+INVENTORY_LISTED	A CITES / Regulation (EC) 338/97 listing · it is NOT a cosmetic inventory and NOT a ban on formulating. What it triggers is a PERMIT regime on the international TRADE in specimens, and on the parts an
+PRESERVATIVE	Positive list for that specific function. Listing authorises the substance FOR THIS FUNCTION only, under the stated conditions; absence means not authorised for it.
+PROHIBITED	Banned. Presence in this list means the substance may not be used.
+RESTRICTED	Allowed under conditions. Read the concentration and scope fields · a restricted substance is NOT a banned one.
+SVHC_CANDIDATE	Candidate List of substances of very high concern (REACH). This is NOT a use limit: nothing here forbids or caps the substance in a cosmetic. What listing DOES trigger, immediately, is information dut
+UV_FILTER	Positive list for that specific function. Listing authorises the substance FOR THIS FUNCTION only, under the stated conditions; absence means not authorised for it.
+
+## 2c. Per annex or list: current entries by type, nature, scope and identifier presence
+annex_ref	annex_type	texts	current_entries	literal	derived	single	grp	generic_class	cas	ec	inci	clp_index	colour_index	no_identifier
+Annex (1) — species of Annex A to Regulation (EC) No 338/97	RESTRICTED	32025R0006	5	5	0	5	0	0	0	0	0	0	0	5
+Annex (2) — species of Annex B to Regulation (EC) No 338/97	RESTRICTED	32025R0006	190	190	0	188	2	0	0	0	0	0	0	190
+Annex A — CITES Appendix I	INVENTORY_LISTED	32026R1383	616	616	0	568	48	0	0	0	0	0	0	616
+Annex A — CITES Appendix II	INVENTORY_LISTED	32026R1383	114	114	0	113	1	0	0	0	0	0	0	114
+Annex A — CITES Appendix I/II	INVENTORY_LISTED	32026R1383	7	7	0	4	3	0	0	0	0	0	0	7
+Annex A — CITES Appendix III	INVENTORY_LISTED	32026R1383	2	2	0	2	0	0	0	0	0	0	0	2
+Annex A — hors Appendices CITES	INVENTORY_LISTED	32026R1383	20	20	0	20	0	0	0	0	0	0	0	20
+Annex B — CITES Appendix II	INVENTORY_LISTED	32026R1383	550	550	0	380	170	0	0	0	0	0	0	550
+Annex B — CITES Appendix III	INVENTORY_LISTED	32026R1383	1	1	0	1	0	0	0	0	0	0	0	1
+Annex B — hors Appendices CITES	INVENTORY_LISTED	32026R1383	14	14	0	14	0	0	0	0	0	0	0	14
+Annex C — CITES Appendix III	INVENTORY_LISTED	32026R1383	236	236	0	212	24	0	0	0	0	0	0	236
+Annex D — CITES Appendix III	INVENTORY_LISTED	32026R1383	7	7	0	7	0	0	0	0	0	0	0	7
+Annex D — hors Appendices CITES	INVENTORY_LISTED	32026R1383	77	77	0	62	15	0	0	0	0	0	0	77
+Annex II	PROHIBITED	32009R1223	1866	1866	0	1771	95	0	1793	1672	0	15	0	48
+Annex III	RESTRICTED	32009R1223	589	589	0	485	104	0	535	513	536	0	0	48
+Annex I, part A	PROHIBITED	EU_POPS	1	1	0	1	0	0	1	1	0	0	0	0
+Annex IV	COLORANT	32009R1223	154	154	0	132	22	0	137	75	11	0	154	0
+Annex V	PRESERVATIVE	32009R1223	68	68	0	46	22	0	67	68	68	0	0	0
+Annex VI	UV_FILTER	32009R1223	33	33	0	29	4	0	33	26	33	0	0	0
+Annex VI Table 3	CLP_HARMONISED	32008R1272, 32009R0790, 32009R0790-corr, 32011R0286, 32012R0618, 32013R0487, 32013R0944, 32014R0605, 32015R1221, 32016R1179, 32017R0776, 32018R0669, 32018R1480, 32020R0217, 32020R1182, 32021R0849, 32022R0692, 32023R1435, 32024R0197, 32024R2564, 32025R1222	4471	4471	0	4315	156	0	3886	4132	0	4471	0	0
+Article 15(1)	PROHIBITED	32009R1223	369	0	369	351	18	0	346	311	0	369	0	0
+Article 15(2)	PROHIBITED	32009R1223	1156	0	1156	1112	44	0	1116	1101	0	1156	0	0
+CMR category 1A	CMR_1A	EU_REACH	331	331	0	324	7	0	320	313	0	330	0	0
+CMR category 1B	CMR_1B	EU_REACH	854	854	0	847	7	0	834	838	0	851	0	0
+Exemptions	EXEMPTION	EU_REACH	75	75	0	75	0	0	75	7	0	0	0	0
+Mutagens	CMR_1B	EU_REACH	431	431	0	431	0	0	429	430	0	428	0	0
+POPs Regulation	PROHIBITED	EU_POPS	34	34	0	33	1	0	20	20	0	0	0	14
+REACH Annex V	EXEMPTION	EU_REACH	42	13	29	29	0	13	29	0	0	0	0	13
+REACH Annex XIV	RESTRICTED	EU_REACH_ANNEX_XIV	59	59	0	59	0	0	49	50	0	0	0	9
+REACH Annex XVII	RESTRICTED	EU_REACH_ANNEX_XVII	2108	2108	0	2107	0	1	2038	1529	0	0	0	70
+REACH Candidate List	SVHC_CANDIDATE	EU_REACH_CANDIDATE_LIST	253	253	0	252	1	0	213	215	0	0	0	38
+Toxic category 1	CMR_1A	EU_REACH	23	23	0	23	0	0	21	20	0	23	0	0
+Toxic category 2	CMR_1B	EU_REACH	302	302	0	288	14	0	272	263	0	298	0	0
+	CLP_HARMONISED, CMR_1A, CMR_1B, COLORANT, EXEMPTION, INVENTORY_LISTED, PRESERVATIVE, PROHIBITED, RESTRICTED, SVHC_CANDIDATE, UV_FILTER	32008R1272, 32009R0790, 32009R0790-corr, 32009R1223, 32011R0286, 32012R0618, 32013R0487, 32013R0944, 32014R0605, 32015R1221, 32016R1179, 32017R0776, 32018R0669, 32018R1480, 32020R0217, 32020R1182, 32021R0849, 32022R0692, 32023R1435, 32024R0197, 32024R2564, 32025R0006, 32025R1222, 32026R1383, EU_POPS, EU_REACH, EU_REACH_ANNEX_XIV, EU_REACH_ANNEX_XVII, EU_REACH_CANDIDATE_LIST	15058	13504	1554	14286	758	14	12214	11584	648	7941	154	2079
+
+## 3a. Coverage scopes: list type, completeness, absence key, current entries in the same annex
+annex_ref	text_ref	annex_type	list_semantics	completeness	complete_as_of	scope_open	absence_key	entries_same_annex_ref
+Annex VI Table 3	32008R1272	CLP_HARMONISED	NEGATIVE_LIST	COMPLETE	2026-08-26	false	NOT COVERED by this scope	4471
+Annex VI Table 3	32009R0790	CLP_HARMONISED	NEGATIVE_LIST	COMPLETE	2026-08-26	false	NOT COVERED by this scope	4471
+Annex VI Table 3	32009R0790-corr	CLP_HARMONISED	NEGATIVE_LIST	COMPLETE	2026-08-26	false	NOT COVERED by this scope	4471
+Annex II	32009R1223	PROHIBITED	NEGATIVE_LIST	COMPLETE	2026-08-26	false	NOT COVERED by this scope	1866
+Annex III	32009R1223	RESTRICTED	NEGATIVE_LIST	COMPLETE	2026-08-26	false	NOT COVERED by this scope	589
+Annex IV	32009R1223	COLORANT	POSITIVE_LIST	COMPLETE	2026-08-26	false	NOT AUTHORISED	154
+Annex V	32009R1223	PRESERVATIVE	POSITIVE_LIST	COMPLETE	2026-08-26	false	NOT AUTHORISED	68
+Annex VI	32009R1223	UV_FILTER	POSITIVE_LIST	COMPLETE	2026-08-26	false	NOT AUTHORISED	33
+Article 15(1)	32009R1223	PROHIBITED	NEGATIVE_LIST	COMPLETE	2026-08-26	false	NOT COVERED by this scope	369
+Article 15(2)	32009R1223	PROHIBITED	NEGATIVE_LIST	COMPLETE	2026-08-26	false	NOT COVERED by this scope	1156
+Annex VI Table 3	32011R0286	CLP_HARMONISED	NEGATIVE_LIST	COMPLETE	2026-08-26	false	NOT COVERED by this scope	4471
+Annex VI Table 3	32012R0618	CLP_HARMONISED	NEGATIVE_LIST	COMPLETE	2026-08-26	false	NOT COVERED by this scope	4471
+Annex VI Table 3	32013R0487	CLP_HARMONISED	NEGATIVE_LIST	COMPLETE	2026-08-26	false	NOT COVERED by this scope	4471
+Annex VI Table 3	32013R0944	CLP_HARMONISED	NEGATIVE_LIST	COMPLETE	2026-08-26	false	NOT COVERED by this scope	4471
+Annex VI Table 3	32014R0605	CLP_HARMONISED	NEGATIVE_LIST	COMPLETE	2026-08-26	false	NOT COVERED by this scope	4471
+Annex VI Table 3	32014R1297	CLP_HARMONISED	NEGATIVE_LIST	COMPLETE	2026-08-26	false	NOT COVERED by this scope	4471
+Annex VI Table 3	32016R0918	CLP_HARMONISED	NEGATIVE_LIST	COMPLETE	2026-08-26	false	NOT COVERED by this scope	4471
+Annex VI Table 3	32016R1179	CLP_HARMONISED	NEGATIVE_LIST	COMPLETE	2026-08-26	false	NOT COVERED by this scope	4471
+Annex VI Table 3	32018R0669	CLP_HARMONISED	NEGATIVE_LIST	COMPLETE	2026-08-26	false	NOT COVERED by this scope	4471
+Annex VI Table 3	32018R1480	CLP_HARMONISED	NEGATIVE_LIST	COMPLETE	2026-08-26	false	NOT COVERED by this scope	4471
+Annex VI Table 3	32019R0521	CLP_HARMONISED	NEGATIVE_LIST	COMPLETE	2026-08-26	false	NOT COVERED by this scope	4471
+Annex VI Table 3	32020R0217	CLP_HARMONISED	NEGATIVE_LIST	COMPLETE	2026-08-26	false	NOT COVERED by this scope	4471
+Annex VI Table 3	32021R0849	CLP_HARMONISED	NEGATIVE_LIST	COMPLETE	2026-08-26	false	NOT COVERED by this scope	4471
+Annex VI Table 3	32022R0692	CLP_HARMONISED	NEGATIVE_LIST	COMPLETE	2026-08-26	false	NOT COVERED by this scope	4471
+Annex VI Table 3	32024R0197	CLP_HARMONISED	NEGATIVE_LIST	COMPLETE	2026-08-26	false	NOT COVERED by this scope	4471
+Annex VI Table 3	32024R2564	CLP_HARMONISED	NEGATIVE_LIST	COMPLETE	2026-08-26	false	NOT COVERED by this scope	4471
+Annex (1) — species of Annex A to Regulation (EC) No 338/97	32025R0006	RESTRICTED	POSITIVE_LIST	PARTIAL		false	NOTHING	5
+Annex (2) — species of Annex B to Regulation (EC) No 338/97	32025R0006	RESTRICTED	POSITIVE_LIST	PARTIAL		false	NOTHING	190
+Annex VI Table 3	32025R1222	CLP_HARMONISED	NEGATIVE_LIST	COMPLETE	2026-08-26	false	NOT COVERED by this scope	4471
+Annex A — CITES Appendix I	32026R1383	INVENTORY_LISTED	NEGATIVE_LIST	COMPLETE	2026-08-26	false	NOT COVERED by this scope	616
+Annex A — CITES Appendix II	32026R1383	INVENTORY_LISTED	NEGATIVE_LIST	COMPLETE	2026-08-26	false	NOT COVERED by this scope	114
+Annex A — CITES Appendix I/II	32026R1383	INVENTORY_LISTED	NEGATIVE_LIST	COMPLETE	2026-08-26	false	NOT COVERED by this scope	7
+Annex A — CITES Appendix III	32026R1383	INVENTORY_LISTED	NEGATIVE_LIST	COMPLETE	2026-08-26	false	NOT COVERED by this scope	2
+Annex A — hors Appendices CITES	32026R1383	INVENTORY_LISTED	NEGATIVE_LIST	COMPLETE	2026-08-26	false	NOT COVERED by this scope	20
+Annex B — CITES Appendix II	32026R1383	INVENTORY_LISTED	NEGATIVE_LIST	COMPLETE	2026-08-26	false	NOT COVERED by this scope	550
+Annex B — CITES Appendix III	32026R1383	INVENTORY_LISTED	NEGATIVE_LIST	COMPLETE	2026-08-26	false	NOT COVERED by this scope	1
+Annex B — hors Appendices CITES	32026R1383	INVENTORY_LISTED	NEGATIVE_LIST	COMPLETE	2026-08-26	false	NOT COVERED by this scope	14
+Annex C — CITES Appendix III	32026R1383	INVENTORY_LISTED	NEGATIVE_LIST	COMPLETE	2026-08-26	false	NOT COVERED by this scope	236
+Annex D — CITES Appendix III	32026R1383	INVENTORY_LISTED	NEGATIVE_LIST	COMPLETE	2026-08-26	false	NOT COVERED by this scope	7
+Annex D — hors Appendices CITES	32026R1383	INVENTORY_LISTED	NEGATIVE_LIST	COMPLETE	2026-08-26	false	NOT COVERED by this scope	77
+POPs Regulation	EU_POPS	PROHIBITED	NEGATIVE_LIST	COMPLETE	2026-08-26	false	NOT COVERED by this scope	34
+CMR category 1A	EU_REACH	CMR_1A	NEGATIVE_LIST	COMPLETE	2026-08-26	false	NOT COVERED by this scope	331
+CMR category 1B	EU_REACH	CMR_1B	NEGATIVE_LIST	COMPLETE	2026-08-26	false	NOT COVERED by this scope	854
+Exemptions	EU_REACH	EXEMPTION	MIXED	COMPLETE	2026-08-26	false	THE GENERAL RULE APPLIES	75
+Mutagens	EU_REACH	CMR_1B	NEGATIVE_LIST	COMPLETE	2026-08-26	false	NOT COVERED by this scope	431
+REACH Annex V	EU_REACH	EXEMPTION	POSITIVE_LIST	COMPLETE	2026-08-26	false	THE GENERAL RULE APPLIES	42
+Toxic category 1	EU_REACH	CMR_1A	NEGATIVE_LIST	COMPLETE	2026-08-26	false	NOT COVERED by this scope	23
+Toxic category 2	EU_REACH	CMR_1B	NEGATIVE_LIST	COMPLETE	2026-08-26	false	NOT COVERED by this scope	302
+REACH Annex XIV	EU_REACH_ANNEX_XIV	RESTRICTED	NEGATIVE_LIST	COMPLETE	2026-08-26	false	NOT COVERED by this scope	59
+REACH Annex XVII	EU_REACH_ANNEX_XVII	RESTRICTED	NEGATIVE_LIST	COMPLETE	2026-08-26	false	NOT COVERED by this scope	2108
+REACH Candidate List	EU_REACH_CANDIDATE_LIST	SVHC_CANDIDATE	NEGATIVE_LIST	COMPLETE	2026-08-26	false	NOT COVERED by this scope	253
+
+## 3b. Distinct absence statements (first 260 characters) and how many scopes carry each
+absence_means_start	scopes	list_semantics
+NOT COVERED by this scope · this is a NEGATIVE list (see `annexType` for what it forbids or restricts) and our reading of it is exhaustive: a substance absent from it carries no obligation FROM THIS SCOPE. ⚠️ It may well carry one from another · a market verdi	44	NEGATIVE_LIST
+NOT AUTHORISED · this is a POSITIVE list and our reading of it is exhaustive: a substance absent from it is not authorised under this scope. ⚠️ Exhaustive as established on `completeAsOf`, against the consolidation we read · not a promise that the law has not 	3	POSITIVE_LIST
+NOTHING · entries from this scope WERE extracted, but their exhaustiveness is not established. An absence may be a real absence or a gap in our extraction, and nothing distinguishes them yet.	2	POSITIVE_LIST
+THE GENERAL RULE APPLIES · this scope is a list of DEROGATIONS from a rule stated in another provision, and our reading of it is exhaustive. A substance absent from it is NOT thereby forbidden and NOT thereby free: it simply does not benefit from the carve-out	2	MIXED, POSITIVE_LIST
+
+## 3c. Annexes with entries but no coverage scope of the same annexRef
+annex_ref	current_entries
+Annex I, part A	1
+
+## 3d. Coverage scopes whose annexRef has no entries
+annex_ref	text_ref	annex_type	list_semantics
+
+## 4a. Allergens: counts and fields present
+allergens	with_threshold_text	with_conditions	with_cas	with_ec	distinct_entry_refs	basis_acts	basis_rule	basis_annexes	scan_capped
+137	137	0	129	129	135	["32009R1223"]	DUTY_STATED_IN_THE_ENTRY	["Annex III"]	false
+
+## 4b. Allergen thresholds: how the threshold text states leave-on / rinse-off values
+mentions_leave_on	mentions_rinse_off	has_0_001pct	has_0_01pct
+137	137	119	119
+
+## 6a. Screening list codes observed in the pilot (100 catalogue substances)
+list_code	name	publisher	memberships
+ECHA_DOSSIER_EVALUATION	ECHA — registration dossier evaluations	European Chemicals Agency (ECHA)	22
+ECHA_EU_POSITIVE_LIST	EU positive list — food contact materials and drinking water (FCM/DWD)	European Chemicals Agency (ECHA)	6
+ECHA_CLH_PROCESS	ECHA — harmonised classification (CLH) procedures under way	European Chemicals Agency (ECHA)	6
+ECHA_RESTRICTION_PROCESS	ECHA — REACH restriction procedures under way	European Chemicals Agency (ECHA)	5
+ECHA_SVHC_IDENTIFICATION	ECHA — substance of very high concern (SVHC) identification procedures	European Chemicals Agency (ECHA)	2
+ECHA_SUBSTANCE_EVALUATION	ECHA — substance evaluations (CoRAP)	European Chemicals Agency (ECHA)	2
+IARC_MONOGRAPHS	IARC Monographs — classification of carcinogenic hazard to humans	International Agency for Research on Cancer (World Health Organization)	1
+
+## 6b. Opinion bodies observed in the pilot
+body	opinions	substances
+CIR	2	2
+
+## 6c. Where SCCS and IFRA are mentioned in the replay (current-entry rows) and the pilot
+where_	n
+pilot screening: IFRA list membership	0
+replay: IFRA anywhere	0
+replay: SCCS in conditions text	1535
+pilot lookup context: SCCS opinions	0
+replay: SCCS anywhere	1535
+
