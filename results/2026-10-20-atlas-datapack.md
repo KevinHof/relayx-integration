@@ -164,6 +164,12 @@ The PDF said 129 allergens and basis act 32023R1545 (VE-21).
 | IFRA | No | Not observed | | Contract names list code IFRA_STANDARDS (membership and link only, no limits); 0 of 100 pilot substances; the pilot returned list codes the contract does not name (6 ECHA lists, IARC) |
 | CITES | Yes, 1,839 | | | 13 scopes; no identifiers, names only |
 
+Update 2026-10-20 (results/2026-10-20-targeted-checks.md): SCCS opinions are served (11
+distinct SCCS opinions across 50 targeted substances, 12 of which carry any opinion; equal
+in lookup and the opinions endpoint), and
+IFRA_STANDARDS appears for 12 of 20 fragrance allergens. Both rows above describe the
+100-substance pilot only.
+
 Other screening lists seen in the pilot: ECHA_DOSSIER_EVALUATION (22 memberships),
 ECHA_EU_POSITIVE_LIST (6, food contact and drinking water), ECHA_SUBSTANCE_EVALUATION (2),
 IARC_MONOGRAPHS (1). Screening and opinions figures rest on 100 substances only.

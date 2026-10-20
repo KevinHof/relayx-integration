@@ -165,6 +165,23 @@ appended as a new call, also on resume.
 Check: `by_status` only `200`; the number of lookup items answered equals the sample size;
 `analyse` output against the previous results file.
 
+### Targeted checks
+
+**API**, opinions about 100 units, impurity 20, IFRA 20. Samples are drawn locally from the
+loaded replay and allergen list (seed 20261020).
+
+```powershell
+python -m relayx.targeted_checks run opinions
+python -m relayx.targeted_checks run impurity
+python -m relayx.targeted_checks run ifra
+python -m relayx.targeted_checks run opinions --resume data/raw/api/<run_dir>
+python -m relayx.targeted_checks analyse data/raw/api/<run_dir>
+```
+
+Output: `data/raw/api/<UTCstamp>_check_<name>_eu/` with `sample.json` and `specs.json`.
+Check with `analyse`, then load (section 6). Results 2026-10-20:
+results/2026-10-20-targeted-checks.md.
+
 ## 6. Loader (raw files into Postgres)
 
 Local only, no API calls.
@@ -222,7 +239,7 @@ python -m pytest -q tests/test_changes_replay.py
 ```
 
 No database or API access needed; HTTP calls are faked in the tests. Expected: all pass
-(36 on 2026-10-20).
+(39 on 2026-10-20).
 
 ## 10. After a run
 

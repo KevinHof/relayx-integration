@@ -24,6 +24,9 @@ Phases run in this order. Each one has a gate; do not start a phase before its g
    (if lookup matches the endpoint, opinions come from lookup and the separate run is
    dropped); impurity limits checked on about 20 known contaminants. Full per-substance
    run waits for fast-track F step 1 and the step 2 lookup plan.
+   Results 2026-10-20 (results/2026-10-20-targeted-checks.md): opinions equal on 50 of 50,
+   so the separate opinions run is dropped; impurity limits for 10 of 20 contaminants;
+   IFRA_STANDARDS served for 12 of 20 fragrance allergens.
 F. Fast-track (2026-10-20): pre-signing matching assessment. The contract with Relay X is
    signed only after the full scope of match and mismatch between Relay X and Covalo data
    is known. Runs on raw data with provisional SQL (sql/provisional/), every object and

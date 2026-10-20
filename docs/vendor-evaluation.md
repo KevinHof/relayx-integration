@@ -188,11 +188,13 @@ do not map one to one onto entry sets.
 
 Deviations from documentation:
 
-VE-31 DEMONSTRATED on a sample. The contract names two screening list codes, `PFAS_EPA_TSCA`
-and `IFRA_STANDARDS`. The 100-substance pilot returned neither, and returned seven codes the
-contract does not name: ECHA_DOSSIER_EVALUATION, ECHA_EU_POSITIVE_LIST, ECHA_CLH_PROCESS,
-ECHA_RESTRICTION_PROCESS, ECHA_SVHC_IDENTIFICATION, ECHA_SUBSTANCE_EVALUATION,
-IARC_MONOGRAPHS. (RX-21)
+VE-31 DEMONSTRATED on samples. The contract names two screening list codes, `PFAS_EPA_TSCA`
+and `IFRA_STANDARDS`. Seven further codes are served that the contract does not name:
+ECHA_DOSSIER_EVALUATION, ECHA_EU_POSITIVE_LIST, ECHA_CLH_PROCESS, ECHA_RESTRICTION_PROCESS,
+ECHA_SVHC_IDENTIFICATION, ECHA_SUBSTANCE_EVALUATION, IARC_MONOGRAPHS. `IFRA_STANDARDS` is
+served (12 of 20 fragrance allergens, 2026-10-20; none of the 100 pilot substances), as
+membership with amendment reference and link only (`values` null, RESTRICTED), as documented.
+`PFAS_EPA_TSCA` not yet seen. (RX-21)
 
 Observations:
 
@@ -203,3 +205,16 @@ base act. 86 of 115 texts carry no entries; they serve as amendment provenance o
 VE-33 DEMONSTRATED. The CITES import-suspension list (32025R0006, 195 entries) is typed
 `RESTRICTED` and served as a POSITIVE_LIST with completeness PARTIAL ("NOTHING" on absence),
 the only two PARTIAL scopes in the EU corpus.
+
+## J. Targeted checks (2026-10-20, results/2026-10-20-targeted-checks.md)
+
+VE-34 DEMONSTRATED. Opinions in lookup's `substanceContext` equal /substances/opinions for
+50 of 50 substances (plus 2 of 2 in the pilot), compared on body and reference. Lookup
+repeats rows within one substance (one CIR opinion twice, SCCS/1631/21 three times); the
+endpoint does not. Bodies seen: SCCS, WHO_IPCS, CIR.
+
+VE-35 DEMONSTRATED. /substances/impurity-limits returns limits for 10 of 20 known
+contaminants (heavy metals, acrylamide, asbestos, benzo[a]pyrene, formaldehyde) and none for
+chromium(VI), 1,4-dioxane, methanol, three nitrosamines, benzene, ethylene oxide, diethylene
+glycol and dichloromethane. German (DE) guidance values are served under the EUROPE
+subscription. Together with VE-24: coverage is narrow and contaminant-specific.

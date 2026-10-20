@@ -28,9 +28,9 @@ units take about 2.8 h of quota time. The binding limit is still asked (RX-1).
 | GET /allergens | declarable allergens with threshold text, basisActs | yes (200) | paginated list per territory | 1 (EU, 137) | DONE 2026-10-19, loaded |
 | GET /substances/lookup and POST lookup:batch | constraints in force, `upcoming`, `substanceContext` (opinions, screening, precedents, pipeline), ingredientStatus, otherNameMatches, baseForm | yes (batch 200) | per substance from the source list | about 16,000 plus paging follow-ups | pilot of 100 loaded; full run recommended |
 | GET /substances/market-summary | verdict per market, statusMeans, entryRefs; no text | yes (200) | per substance | about 16,000 | pilot of 100 loaded; full run not recommended (EU rows equal lookup) |
-| GET /substances/impurity-limits | impurity thresholds per market, regime, matrix, verificationLevel | yes (200) | per substance (name accepted) | about 16,000 | pilot: 0 of 100 with limits; deferred (RX-14) |
-| GET /substances/screening | screening list membership (PFAS EPA, IFRA, ECHA processes), links | yes (200) | per substance (cas, ec, inci only) | about 14,000 | pilot of 80 loaded; full run recommended (lookup holds a subset) |
-| GET /substances/opinions | scientific opinion pointers (body, reference, date, link) | yes (200) | per substance (cas, ec, inci only) | about 14,000 | pilot of 80 loaded; full run recommended provisionally |
+| GET /substances/impurity-limits | impurity thresholds per market, regime, matrix, verificationLevel | yes (200) | per substance (name accepted) | about 16,000 | pilot: 0 of 100 with limits; contaminant check 2026-10-20: 10 of 20 (loaded); full sweep not planned, targeted list instead (RX-14) |
+| GET /substances/screening | screening list membership (PFAS EPA, IFRA, ECHA processes), links | yes (200) | per substance (cas, ec, inci only) | about 14,000 | pilot of 80 and IFRA check of 20 allergens loaded (IFRA_STANDARDS 12 of 20); full run recommended (lookup holds a subset) |
+| GET /substances/opinions | scientific opinion pointers (body, reference, date, link) | yes (200) | per substance (cas, ec, inci only) | none | pilot of 80 and validation sample of 50 loaded; equal to lookup context on 52 of 52 substances; separate run dropped 2026-10-20 (Kevin's rule), opinions read from lookup, deduplicated on body and reference |
 | POST /mcp | same data as the HTTP routes, same quota | not used | not a separate source | 0 | out of scope |
 
 Per-substance total: about 80,000 units, about 22 h of quota time at 60/min, run in the

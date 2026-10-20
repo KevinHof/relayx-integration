@@ -140,4 +140,5 @@ as list codes of /substances/screening. For 100 EU catalogue substances we recei
 and received ECHA_DOSSIER_EVALUATION, ECHA_EU_POSITIVE_LIST, ECHA_CLH_PROCESS,
 ECHA_RESTRICTION_PROCESS, ECHA_SVHC_IDENTIFICATION, ECHA_SUBSTANCE_EVALUATION and
 IARC_MONOGRAPHS. What is the complete set of list codes, which of them are licensed to our
-key, and are IFRA standards included in our subscription? (VE-31)
+key, and can the contract be updated accordingly? (VE-31; 2026-10-20: IFRA_STANDARDS is served
+for fragrance allergens, so the IFRA part is answered by observation.)
