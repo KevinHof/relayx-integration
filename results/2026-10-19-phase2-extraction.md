@@ -76,5 +76,7 @@ Name items were not sent to screening and opinions (40 NOT_QUERYABLE).
 Total for 1 to 3: about 44,000 units, about 12 h of quota at 60/min, in background runs.
 
 ## Open points
-- Kevin: decide on the recommendation above; provide the extraction-strategy ADR.
+- Kevin: decide on the recommendation above.
+- Done 2026-10-20: extraction-strategy ADR saved as ADR-002; phase 1 gate passed; Q9
+  answered by evidence (Relay X confirmation of "nothing withheld" pending under RX-3).
 - Q10 (current version rule), RX-17 to RX-19 added; VE-15 to VE-21 recorded.

@@ -35,6 +35,11 @@ contract "per subscription per minute, Reset = Unix timestamp", headers on unaut
 routes `Limit 15000`, Reset 900 (seconds). On authenticated routes the headers show
 `Limit 60`, 1 unit per /changes page, Reset as a Unix timestamp. `RateLimit-Policy:
 15000;w=900` appears on all responses. Asked (RX-1).
+  Relay X response 2026-10-19 (Pierre, Slack), the same day as the question: the binding
+  quota is 60 requests per minute per subscription, shared across keys; the 15000;w=900
+  policy is a platform-wide per-IP safeguard. Relay X acknowledged the header and
+  documentation inconsistency and plans to fix both. UNVALIDATED until the fix ships;
+  responsiveness on this point is a positive signal.
 
 VE-6 DEMONSTRATED. On lookup:batch, `RateLimit-Remaining` lags the real charge: a 12-item
 batch came back `truncated: true` after the previous response showed 22 units left, and
@@ -53,8 +58,8 @@ VE-8 DEMONSTRATED on a sample. Every entry that EU lookup returned for a stratif
 sample of 210 catalogue identifiers (CAS 100, EC-only 50, INCI-only 50, name-only 10) is in
 the replay: 249 of 249, rate 1.000 in every stratum (95 % upper bound on miss rate about
 1.2 %). UNVALIDATED: completeness for entries no identifier or catalogue name reaches.
-Relay X has indicated /changes is the intended full-extract route; confirmation of a
-complete replay is asked (RX-3).
+Relay X confirmed the replay method on 2026-10-19 (Slack); explicit confirmation that
+nothing is withheld beyond `withheldByScope` is pending (RX-3 PARTLY ANSWERED, ADR-002).
 
 ## D. Data quality
 

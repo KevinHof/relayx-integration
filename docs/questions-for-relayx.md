@@ -1,23 +1,39 @@
 # Questions for Relay X (batched)
 
-Status values: DRAFT (not yet sent), ASKED (date), ANSWERED (date, summary and source).
+Status values: DRAFT (not yet sent), ASKED (date), PARTLY ANSWERED (date, what is
+answered and what is still pending, source), ANSWERED (date, summary and source).
 Linked findings: docs/vendor-evaluation.md (VE-n). Internal questions: docs/open-questions.md.
 
-RX-1 ASKED 2026-10-19 (Kevin). Quota. Which limit binds (PDF: 60/min per key; contract:
-per subscription per minute; observed `RateLimit-Limit` 60 on authenticated calls and
-15000 on unauthenticated ones, `RateLimit-Policy: 15000;w=900` on all)? What is the unit
-cost of one /changes page? Is `RateLimit-Reset` seconds or a Unix timestamp (both observed)?
-(VE-5, Q7)
+RX-1 ANSWERED 2026-10-19 (asked by Kevin 2026-10-19; answer from Pierre, Relay X, Slack).
+Quota. Which limit binds (PDF: 60/min per key; contract: per subscription per minute;
+observed `RateLimit-Limit` 60 on authenticated calls and 15000 on unauthenticated ones,
+`RateLimit-Policy: 15000;w=900` on all)? What is the unit cost of one /changes page? Is
+`RateLimit-Reset` seconds or a Unix timestamp (both observed)? (VE-5, Q7)
+  Answer:
+  - Quota: 60 requests per minute, set per subscription and shared across all our keys.
+    `RateLimit-Policy: 15000;w=900` is a platform-wide per-IP safeguard, not our limit.
+    Relay X will fix that header and the docs. The trial runs on the standard 60/min; it
+    can be adjusted when we go commercial, based on the throughput we state.
+  - /changes: one page = one unit regardless of size; `limit=200` is the maximum; results
+    are oldest first and resumable.
+  - Not addressed: `RateLimit-Reset` format (contract and authenticated responses: Unix
+    timestamp).
 
 RX-2 DRAFT. lookup:batch. Please document the cap of 2,500 on items x `limit`
 (`batch_result_too_large`). Does `RateLimit-Remaining` on a batch response reflect the
 charge for that batch's items? We saw a mid-batch truncation after the previous response
 showed 22 units left. (VE-3, VE-6)
 
-RX-3 DRAFT. /changes as full extract. Please confirm that `/changes?since=<before corpus
-start>&territory=EU`, paged by cursor to `truncated: false`, returns every version of every
-EU entry visible to our key, with nothing withheld beyond `withheldByScope`. Is
-2026-08-01T00:30Z the start of the knowledge log? (VE-7, VE-8, Q9)
+RX-3 PARTLY ANSWERED 2026-10-19 (Pierre, Relay X, Slack). /changes as full extract. Please
+confirm that `/changes?since=<before corpus start>&territory=EU`, paged by cursor to
+`truncated: false`, returns every version of every EU entry visible to our key, with
+nothing withheld beyond `withheldByScope`. Is 2026-08-01T00:30Z the start of the knowledge
+log? (VE-7, VE-8, Q9, ADR-002)
+  Answered: the method is the intended one: `since=2000-01-01T00:00:00Z`, `limit=200`,
+  follow `nextCursor` until none is left; results oldest first, resumable; retracted
+  entries come through as RETRACTED.
+  Pending: explicit confirmation that nothing is withheld beyond `withheldByScope`;
+  start of the knowledge log (see also RX-12).
 
 RX-4 DRAFT. The `searchMeans` text says "20470 current constraints that carry no identifier
 at all". Which territories and which identifier fields does this count cover? Our EU

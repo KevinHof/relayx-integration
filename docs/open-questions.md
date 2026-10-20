@@ -1,4 +1,4 @@
-# Open questions (as of 2026-10-19)
+# Open questions (as of 2026-10-20)
 
 Status values: OPEN, ASKED (to Relay X), ANSWERED (link the ADR or source).
 
@@ -49,9 +49,16 @@ Q6 OPEN. Schema layout. Proposal (not decided): relayx_raw (append-only response
 relayx_ops (run log, cursor), relayx_core (normalised, versioned), plus a matching
 layer. Needs an ADR before any schema is created. The ADR also covers a read-only DB role.
 
-Q7 ASKED (to Relay X, 2026-10-19). Quota: binding limit, unit cost per /changes page,
-RateLimit-Reset format. Until answered, the RateLimit-* headers are the source of truth
-(CLAUDE.md rule 4).
+Q7 ANSWERED (Relay X, Pierre, Slack, 2026-10-19; RX-1). Quota: binding limit, unit cost
+per /changes page, RateLimit-Reset format. The RateLimit-* headers remain the runtime
+source of truth (CLAUDE.md rule 4).
+  - Answer: 60 requests per minute per subscription, shared across all our keys.
+    `RateLimit-Policy: 15000;w=900` is a platform-wide per-IP safeguard, not our limit;
+    Relay X will fix the header and the docs. One /changes page = one unit regardless of
+    size; `limit=200` is the maximum. Trial runs on the standard 60/min, adjustable when
+    going commercial based on stated throughput.
+  - Not covered by the answer: RateLimit-Reset format. Contract and authenticated
+    responses say Unix timestamp; keep parsing defensively.
   - Observed on unauthenticated routes: `RateLimit-Limit: 15000`, Reset 900 / 793.
   - Observed on authenticated /changes: `RateLimit-Limit: 60`, Remaining 59 then 58
     (1 unit per page), Reset `1792419799` (Unix timestamp, 60 s ahead).
@@ -63,7 +70,7 @@ RateLimit-Reset format. Until answered, the RateLimit-* headers are the source o
 Q8 ANSWERED (CLAUDE.md rule 4 changed 2026-10-19). Page /changes only with the returned
 `nextCursor` (passed back as `cursor`); `nextSince` is for dating only.
 
-Q9 OPEN. Does a /changes replay from an early date return every current EU entry
+Q9 ANSWERED by evidence (ADR-002, 2026-10-20). Does a /changes replay from an early date return every current EU entry
 (completeness of option A)?
   - Observed 2026-10-19: `since=2000-01-01`, page 1 `total: 15205` (rows remaining after
     the cursor, not corpus size), earliest `knownSince` 2026-08-01T00:30:42Z, all 400 rows
@@ -74,9 +81,13 @@ Q9 OPEN. Does a /changes replay from an early date return every current EU entry
   - Completeness check 2026-10-19: 249 of 249 entries returned by EU lookup for a
     stratified sample of 210 catalogue identifiers are in the replay (rate 1.000 in every
     stratum, 0 misses; 95 % upper bound on miss rate about 1.2 %).
-  - Remaining: Kevin's review (phase 1 gate); 4 entries with SUPERSEDED before
-    FIRST_RECORDED need /history to resolve their current version; Relay X confirmation
-    that the feed is a complete replay.
+  - /texts 2026-10-19: sum of `constraintCount` over 115 EU texts = 15,205 = replay rows.
+  - Answered 2026-10-20 by evidence (ADR-002): replay row counts, lookup cross-check
+    249 of 249, /texts `constraintCount` sum. Phase 1 gate passed. Limit: completeness of
+    entries unreachable by lookup rests on internal consistency and Relay X's statement of
+    method. Relay X confirmed the method (Slack, 2026-10-19); explicit confirmation that
+    nothing is withheld beyond `withheldByScope` is pending under RX-3 (PARTLY ANSWERED).
+  - The current-version issue for multi-version entries is tracked in Q10.
 
 Q10 OPEN. Core model: how to determine the current version of an entry when feed order and
 `isCurrent` disagree. Facts (2026-10-19): 31 of 147 multi-version EU entries have two versions
