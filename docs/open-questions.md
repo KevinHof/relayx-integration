@@ -99,3 +99,8 @@ decide in the phase 4 ADR: feed order, supersession marker by elimination, lates
 Q11 OPEN (2026-10-20). CosIng source for F3 (docs/plans/2026-10-20-f3-cosing-bridge.md):
 which CosIng export is used, and where it is loaded in covalo-local-complete (schema, table).
 To be confirmed by Kevin; file name, download date and SHA-256 are recorded at profiling.
+
+Q12 OPEN (2026-10-21). Identifier bridging through the Relay X catalogue. Default rule if the
+catalogue is ever used for INCI to CAS/EC bridging: bridge only from single-INCI catalogue
+rows. Rows bundling several INCI under shared CAS and EC create false links (VE-36,
+results/2026-10-21-catalogue-bridge.md). To be confirmed by Kevin.

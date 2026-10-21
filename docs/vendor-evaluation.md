@@ -218,3 +218,16 @@ contaminants (heavy metals, acrylamide, asbestos, benzo[a]pyrene, formaldehyde) 
 chromium(VI), 1,4-dioxane, methanol, three nitrosamines, benzene, ethylene oxide, diethylene
 glycol and dichloromethane. German (DE) guidance values are served under the EUROPE
 subscription. Together with VE-24: coverage is narrow and contaminant-specific.
+
+## K. Identifier catalogue as a bridge (2026-10-21, results/2026-10-21-catalogue-bridge.md)
+
+Data errors:
+
+VE-36 DEMONSTRATED. Rows of the Relay X EU identifier catalogue (identifiersonlyEU2.csv,
+kevin.relayx_eu_identifiers_v2) bundle several INCI names under one shared set of CAS and EC
+numbers: 1,125 of the 4,247 rows that carry INCI, up to 66 INCI per row. Each INCI on such a
+row is thereby linked to identifiers of other substances. Example: row 1570 carries 26 INCI
+(amines, borates and CARBOMER) with 33 CAS and EC 215-540-4 (a borate); through it CARBOMER
+links to borate identifiers and so to Cosmetics Annex II entries. Of the 8 Covalo INCI that
+reach a current entry only through catalogue CAS or EC, all come from such rows and at least
+2 links are false (CARBOMER, OLEAMIDE DEA). Bridging from these rows is unreliable (Q12).
