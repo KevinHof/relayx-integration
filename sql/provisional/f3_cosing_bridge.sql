@@ -1,43 +1,44 @@
--- PROVISIONAL. F3 CosIng bridge (docs/plans/2026-10-20-f3-cosing-bridge.md). Part 1: profile (Q1).
--- Read-only; TEMP objects only; no joins to covalo or relayx_raw in this part.
--- The CosIng table is a parameter, so a current export can replace the Wayback snapshot:
---   python -m relayx.provisional_report sql/provisional/f3_cosing_bridge.sql --param cosing_table=kevin.cosing_ingredients
+-- PROVISIONAL. F3 CosIng bridge (docs/plans/2026-10-20-f3-cosing-bridge.md).
+-- Part 1: profile (Q1, sections p*). Part 2: Q2 INCI matching, Q3 bridge, Q5 referee flag
+-- (sections q*). Q4 and Q6 not included.
+-- Read-only; TEMP objects only. Needs the TEMP objects and the CAS/EC parser of F1
+-- (pg_temp.prep, tokens, cas_ok, ec_ok; one parser for Covalo and CosIng). The CosIng table is
+-- a parameter, so a current export can replace the Wayback snapshot:
+--   python -m relayx.provisional_report sql/provisional/f3_cosing_bridge.sql
+--       --setup sql/provisional/f1_matching_assessment.sql --param cosing_table=kevin.cosing_ingredients
 --
--- Rules:
+-- Rules, part 1:
 --   Blank = NULL, empty or whitespace only. Placeholder = non-blank value with no digit (e.g. "-").
---   CAS / EC tokens: same extraction as F1 (en dashes and spaces around hyphens normalised;
---     CAS (?<!\d)\d{2,7}-\d{2}-\d(?!\d), EC (?<!\d)\d{3}-\d{3}-\d(?!\d)); check digits as in F1.
---   Residue = what is left of a CAS or EC value after removing tokens and whitespace.
+--   CAS / EC tokens: F1 parser (pg_temp.tokens); check digits: F1 pg_temp.cas_ok / ec_ok.
+--   Residue = what is left of a CAS or EC value after removing its tokens and whitespace.
 --   INCI duplicate after normalisation: lower(btrim(inci_name)).
+-- Rules, part 2:
+--   Covalo side: F1 objects unchanged (cov_product = active products; cov_raw = raw identifier
+--     strings; cov_id = parsed values). Raw INCI strings are matched; the distinct unit is the
+--     F1 INCI value (13,912), whose level is the best level among its raw strings.
+--   Levels, each Covalo raw INCI counted at the first level it matches a CosIng inci_name:
+--     L0 btrim equal; L1 U+00A0 to space, U+00D7 to "x", trim, whitespace collapsed, lower case;
+--     L2 L1 then every character outside A-Z and 0-9 removed (F1b strong normalisation, on
+--     upper case); L3 only for raw strings unmatched at L0 to L2: split on ";" and on "," not
+--     between two digits (never on "/"), each component matched at L0 to L2; "all" components
+--     matched counts as matched at L3, "some" is reported separately and is not a match.
+--   Product level: best level over the product's INCI (at least one INCI matched).
+--   Two CosIng reference sets: 'all' rows; 'excl_fragrance' = rows except those whose only
+--     functions are PERFUMING or FRAGRANCE. All duplicate CosIng INCI rows are kept.
+--   Bridge: CosIng CAS = CAS-pattern tokens from cas_no and ec_no, EC = EC-pattern tokens from
+--     both columns (classified by pattern, not column); placeholders yield no token; tokens
+--     failing the check digit are excluded and counted; "(generic)" directly after a CAS is a flag.
+--     CosIng identifiers of an INCI = those of the CosIng rows it matched at its level.
+--   Product classes per identifier type: agree (Covalo and CosIng sets overlap), conflict (both
+--     present, no overlap), gain (Covalo none, CosIng some), covalo_only (Covalo some, CosIng
+--     none), neither. Covalo CAS/EC = F1 cov_id values (all format-valid tokens, as in F1).
 
 CREATE TEMP VIEW src AS SELECT * FROM {{cosing_table}};
 
-CREATE FUNCTION pg_temp.prep(t text) RETURNS text LANGUAGE sql IMMUTABLE AS $$
-    SELECT regexp_replace(translate(t, E'–—‐‑−', '-----'), '\s*-\s*', '-', 'g')
-$$;
-
-CREATE FUNCTION pg_temp.tokens(t text, kind text) RETURNS SETOF text LANGUAGE sql IMMUTABLE AS $$
-    SELECT m[1] FROM regexp_matches(pg_temp.prep(t),
-        CASE kind WHEN 'CAS' THEN '(?<!\d)(\d{2,7}-\d{2}-\d)(?!\d)'
-                  ELSE '(?<!\d)(\d{3}-\d{3}-\d)(?!\d)' END, 'g') AS m
-$$;
-
 CREATE FUNCTION pg_temp.residue(t text, kind text) RETURNS text LANGUAGE sql IMMUTABLE AS $$
     SELECT btrim(regexp_replace(regexp_replace(pg_temp.prep(t),
-        CASE kind WHEN 'CAS' THEN '(?<!\d)\d{2,7}-\d{2}-\d(?!\d)' ELSE '(?<!\d)\d{3}-\d{3}-\d(?!\d)' END, ' ', 'g'),
+        coalesce((SELECT string_agg(v, '|') FROM pg_temp.tokens(t, kind) AS v), '$^'), ' ', 'g'),
         '\s+', ' ', 'g'))
-$$;
-
-CREATE FUNCTION pg_temp.cas_ok(t text) RETURNS boolean LANGUAGE sql IMMUTABLE AS $$
-    SELECT t ~ '^\d{2,7}-\d{2}-\d$' AND
-           (SELECT sum(d::int * w) FROM regexp_split_to_table(reverse(left(replace(t, '-', ''), -1)), '')
-                    WITH ORDINALITY AS x(d, w)) % 10 = right(t, 1)::int
-$$;
-
-CREATE FUNCTION pg_temp.ec_ok(t text) RETURNS boolean LANGUAGE sql IMMUTABLE AS $$
-    SELECT t ~ '^\d{3}-\d{3}-\d$' AND
-           (SELECT sum(d::int * w) FROM regexp_split_to_table(left(replace(t, '-', ''), 6), '')
-                    WITH ORDINALITY AS x(d, w)) % 11 = right(t, 1)::int
 $$;
 
 CREATE TEMP TABLE idv AS
@@ -58,6 +59,186 @@ SELECT s.cosing_ref_no, btrim(f) AS fn FROM src s, regexp_split_to_table(coalesc
 WHERE btrim(f) <> '';
 CREATE INDEX ON func (cosing_ref_no);
 ANALYZE func;
+
+-- Part 2 -----------------------------------------------------------------------------------
+
+CREATE FUNCTION pg_temp.k0(t text) RETURNS text LANGUAGE sql IMMUTABLE AS $$
+    SELECT nullif(btrim(t), '')
+$$;
+CREATE FUNCTION pg_temp.k1(t text) RETURNS text LANGUAGE sql IMMUTABLE AS $$
+    SELECT nullif(lower(regexp_replace(btrim(translate(t, E' ×', ' x')), '\s+', ' ', 'g')), '')
+$$;
+CREATE FUNCTION pg_temp.k2(t text) RETURNS text LANGUAGE sql IMMUTABLE AS $$
+    SELECT nullif(regexp_replace(upper(pg_temp.k1(t)), '[^A-Z0-9]', '', 'g'), '')
+$$;
+
+-- CosIng rows with match keys and reference-set membership.
+CREATE TEMP TABLE cs AS
+SELECT s.cosing_ref_no, s.inci_name, s.cas_no, s.ec_no,
+       pg_temp.k0(s.inci_name) AS k0, pg_temp.k1(s.inci_name) AS k1, pg_temp.k2(s.inci_name) AS k2,
+       NOT (EXISTS (SELECT 1 FROM func f WHERE f.cosing_ref_no = s.cosing_ref_no)
+            AND NOT EXISTS (SELECT 1 FROM func f WHERE f.cosing_ref_no = s.cosing_ref_no
+                                                   AND f.fn NOT IN ('PERFUMING', 'FRAGRANCE'))) AS in_excl_fragrance
+FROM src s;
+CREATE INDEX ON cs (k0); CREATE INDEX ON cs (k1); CREATE INDEX ON cs (k2);
+ANALYZE cs;
+
+CREATE TEMP TABLE refset AS
+SELECT 'all' AS refset, cosing_ref_no, k0, k1, k2 FROM cs
+UNION ALL
+SELECT 'excl_fragrance', cosing_ref_no, k0, k1, k2 FROM cs WHERE in_excl_fragrance;
+CREATE INDEX ON refset (refset, k0); CREATE INDEX ON refset (refset, k1); CREATE INDEX ON refset (refset, k2);
+ANALYZE refset;
+
+-- Covalo raw INCI strings (F1 cov_raw) with their F1 value; one row per distinct raw string.
+CREATE TEMP TABLE craw AS
+SELECT DISTINCT r.raw_value, pg_temp.norm_inci(r.raw_value) AS f1_value,
+       pg_temp.k0(r.raw_value) AS k0, pg_temp.k1(r.raw_value) AS k1, pg_temp.k2(r.raw_value) AS k2
+FROM cov_raw r WHERE r.id_type = 'INCI' AND pg_temp.norm_inci(r.raw_value) IS NOT NULL;
+ANALYZE craw;
+
+-- Level 0 to 2 matches per raw string and reference set (first level only).
+CREATE TEMP TABLE m012 AS
+WITH l0 AS (SELECT s.refset, c.raw_value, 0 AS lvl, s.cosing_ref_no FROM craw c JOIN refset s ON s.k0 = c.k0),
+     l1 AS (SELECT s.refset, c.raw_value, 1, s.cosing_ref_no FROM craw c JOIN refset s ON s.k1 = c.k1
+            WHERE NOT EXISTS (SELECT 1 FROM l0 WHERE l0.refset = s.refset AND l0.raw_value = c.raw_value)),
+     l2 AS (SELECT s.refset, c.raw_value, 2, s.cosing_ref_no FROM craw c JOIN refset s ON s.k2 = c.k2
+            WHERE NOT EXISTS (SELECT 1 FROM l0 WHERE l0.refset = s.refset AND l0.raw_value = c.raw_value)
+              AND NOT EXISTS (SELECT 1 FROM l1 WHERE l1.refset = s.refset AND l1.raw_value = c.raw_value))
+SELECT * FROM l0 UNION ALL SELECT * FROM l1 UNION ALL SELECT * FROM l2;
+CREATE INDEX ON m012 (refset, raw_value);
+ANALYZE m012;
+
+-- Level 3: components of raw strings unmatched at L0 to L2 (per reference set).
+CREATE TEMP TABLE l3comp AS
+SELECT x.refset, c.raw_value, comp.ord, btrim(comp.part) AS part,
+       pg_temp.k0(comp.part) AS k0, pg_temp.k1(comp.part) AS k1, pg_temp.k2(comp.part) AS k2
+FROM craw c CROSS JOIN (VALUES ('all'), ('excl_fragrance')) AS x(refset)
+CROSS JOIN LATERAL regexp_split_to_table(c.raw_value, ';|(?<![0-9]),|,(?![0-9])') WITH ORDINALITY AS comp(part, ord)
+WHERE NOT EXISTS (SELECT 1 FROM m012 m WHERE m.refset = x.refset AND m.raw_value = c.raw_value)
+  AND btrim(comp.part) <> '';
+
+-- Component matches at L0 to L2 (first level per component).
+CREATE TEMP TABLE l3hit AS
+WITH h AS (
+    SELECT c.refset, c.raw_value, c.ord, 0 AS lvl, s.cosing_ref_no FROM l3comp c JOIN refset s ON s.refset = c.refset AND s.k0 = c.k0
+    UNION ALL
+    SELECT c.refset, c.raw_value, c.ord, 1, s.cosing_ref_no FROM l3comp c JOIN refset s ON s.refset = c.refset AND s.k1 = c.k1
+    UNION ALL
+    SELECT c.refset, c.raw_value, c.ord, 2, s.cosing_ref_no FROM l3comp c JOIN refset s ON s.refset = c.refset AND s.k2 = c.k2)
+SELECT refset, raw_value, ord, lvl, cosing_ref_no
+FROM (SELECT h.*, min(lvl) OVER (PARTITION BY refset, raw_value, ord) AS first_lvl FROM h) x
+WHERE lvl = first_lvl;
+CREATE INDEX ON l3hit (refset, raw_value, ord);
+
+CREATE TEMP TABLE l3sum AS
+SELECT c.refset, c.raw_value, count(*) AS components,
+       count(*) FILTER (WHERE EXISTS (SELECT 1 FROM l3hit h WHERE h.refset = c.refset AND h.raw_value = c.raw_value AND h.ord = c.ord)) AS components_matched
+FROM l3comp c GROUP BY 1, 2;
+
+-- CosIng rows matched by L3 components (only for strings split into several components that all match).
+CREATE TEMP TABLE m3 AS
+SELECT DISTINCT h.refset, h.raw_value, 3 AS lvl, h.cosing_ref_no
+FROM l3hit h JOIN l3sum u USING (refset, raw_value)
+WHERE u.components > 1 AND u.components_matched = u.components;
+
+CREATE TEMP TABLE m_all AS SELECT * FROM m012 UNION ALL SELECT * FROM m3;
+CREATE INDEX ON m_all (refset, raw_value);
+ANALYZE m_all;
+
+-- Level per raw string, per F1 value and per product (per reference set).
+CREATE TEMP TABLE raw_lvl AS
+SELECT x.refset, c.raw_value, c.f1_value,
+       (SELECT min(lvl) FROM m_all m WHERE m.refset = x.refset AND m.raw_value = c.raw_value) AS lvl,
+       (SELECT components > 1 AND components_matched BETWEEN 1 AND components - 1
+        FROM l3sum u WHERE u.refset = x.refset AND u.raw_value = c.raw_value) AS l3_partial
+FROM craw c CROSS JOIN (VALUES ('all'), ('excl_fragrance')) AS x(refset);
+
+CREATE TEMP TABLE val_lvl AS
+SELECT refset, f1_value, min(lvl) AS lvl, bool_or(coalesce(l3_partial, false)) AS l3_partial
+FROM raw_lvl GROUP BY 1, 2;
+
+CREATE TEMP TABLE prod_inci AS
+SELECT DISTINCT r.product_id, r.raw_value FROM cov_raw r
+WHERE r.id_type = 'INCI' AND pg_temp.norm_inci(r.raw_value) IS NOT NULL;
+CREATE INDEX ON prod_inci (raw_value);
+
+CREATE TEMP TABLE prod_lvl AS
+SELECT x.refset, p.product_id, min(l.lvl) AS lvl, bool_and(l.lvl IS NOT NULL) AS all_inci_matched
+FROM prod_inci p CROSS JOIN (VALUES ('all'), ('excl_fragrance')) AS x(refset)
+JOIN raw_lvl l ON l.refset = x.refset AND l.raw_value = p.raw_value
+GROUP BY 1, 2;
+
+-- Target population (item 0): active ingredients with a usable INCI and no usable CAS.
+CREATE TEMP TABLE target AS
+SELECT DISTINCT i.product_id FROM cov_id i JOIN cov_product cp USING (product_id)
+WHERE cp.product_type = 'INGREDIENTS' AND i.id_type = 'INCI'
+  AND NOT EXISTS (SELECT 1 FROM cov_id c WHERE c.product_id = i.product_id AND c.id_type = 'CAS');
+
+-- CosIng identifiers per row, classified by pattern (F1 parser), with check digit and generic flag.
+CREATE TEMP TABLE cs_id AS
+SELECT DISTINCT s.cosing_ref_no, k.kind AS id_type, t.value,
+       CASE k.kind WHEN 'CAS' THEN pg_temp.cas_ok(t.value) ELSE pg_temp.ec_ok(t.value) END AS check_ok,
+       k.kind = 'CAS' AND pg_temp.prep(coalesce(s.cas_no, '') || ' ' || coalesce(s.ec_no, ''))
+                          ~* (t.value || '\s*\(generic\)') AS generic
+FROM cs s CROSS JOIN (VALUES ('CAS'), ('EC')) AS k(kind)
+CROSS JOIN LATERAL pg_temp.tokens(coalesce(s.cas_no, '') || ' ' || coalesce(s.ec_no, ''), k.kind) AS t(value);
+CREATE INDEX ON cs_id (cosing_ref_no);
+ANALYZE cs_id;
+
+-- Number of distinct CosIng INCI (lower, trimmed) carrying each valid CosIng identifier.
+CREATE TEMP TABLE cs_id_spread AS
+SELECT i.id_type, i.value, count(DISTINCT lower(btrim(s.inci_name))) AS n_inci, bool_or(i.generic) AS generic
+FROM cs_id i JOIN cs s USING (cosing_ref_no) WHERE i.check_ok GROUP BY 1, 2;
+CREATE UNIQUE INDEX ON cs_id_spread (id_type, value);
+ANALYZE cs_id_spread;
+
+-- CosIng identifiers reached per product (via its matched INCI, at their level), per set.
+CREATE TEMP TABLE prod_cs_id AS
+SELECT DISTINCT m.refset, p.product_id, i.id_type, i.value, i.check_ok, i.generic
+FROM prod_inci p
+JOIN raw_lvl l ON l.raw_value = p.raw_value AND l.lvl IS NOT NULL
+JOIN m_all m ON m.refset = l.refset AND m.raw_value = l.raw_value AND m.lvl = l.lvl
+JOIN cs_id i ON i.cosing_ref_no = m.cosing_ref_no;
+CREATE INDEX ON prod_cs_id (refset, product_id, id_type);
+ANALYZE prod_cs_id;
+
+-- Per gain product: ambiguity flags of its gained identifiers (for q8).
+CREATE TEMP TABLE gain_amb AS
+SELECT x.refset, x.product_id, x.id_type,
+       bool_or(s.n_inci > 1) AS on_gt1, bool_or(s.n_inci > 10) AS on_gt10, bool_or(x.generic) AS generic,
+       count(*) AS n_values
+FROM prod_cs_id x JOIN cs_id_spread s USING (id_type, value)
+WHERE x.check_ok GROUP BY 1, 2, 3;
+CREATE INDEX ON gain_amb (refset, product_id, id_type);
+
+-- Bridge class per matched product, set and identifier type.
+CREATE TEMP TABLE bridge AS
+SELECT pl.refset, pl.product_id, pl.lvl, t.id_type,
+       EXISTS (SELECT 1 FROM cov_id c WHERE c.product_id = pl.product_id AND c.id_type = t.id_type) AS cov_has,
+       EXISTS (SELECT 1 FROM prod_cs_id x WHERE x.refset = pl.refset AND x.product_id = pl.product_id
+                                            AND x.id_type = t.id_type AND x.check_ok) AS cs_has,
+       EXISTS (SELECT 1 FROM prod_cs_id x JOIN cov_id c ON c.product_id = x.product_id AND c.id_type = x.id_type
+                                                        AND c.value = x.value
+               WHERE x.refset = pl.refset AND x.product_id = pl.product_id AND x.id_type = t.id_type AND x.check_ok) AS overlap,
+       EXISTS (SELECT 1 FROM prod_cs_id x WHERE x.refset = pl.refset AND x.product_id = pl.product_id
+                                            AND x.id_type = t.id_type AND NOT x.check_ok) AS cs_check_fail
+FROM prod_lvl pl CROSS JOIN (VALUES ('CAS'), ('EC')) AS t(id_type)
+WHERE pl.lvl IS NOT NULL;
+ALTER TABLE bridge ADD COLUMN cls text;
+UPDATE bridge SET cls = CASE WHEN cov_has AND cs_has AND overlap THEN 'agree'
+                             WHEN cov_has AND cs_has THEN 'conflict'
+                             WHEN cs_has THEN 'gain'
+                             WHEN cov_has THEN 'covalo_only'
+                             ELSE 'neither' END;
+ANALYZE bridge;
+
+-- Q5 referee flag, as a query (not stored): one row per Covalo INCI value (F1), per reference set.
+CREATE TEMP VIEW f3_referee_flag AS
+SELECT refset, f1_value AS covalo_inci,
+       CASE WHEN lvl IS NULL THEN 'not found in CosIng snapshot' ELSE 'found in CosIng snapshot' END AS flag,
+       CASE WHEN lvl IS NULL THEN NULL ELSE 'L' || lvl END AS match_level
+FROM val_lvl;
 
 -- REPORT
 
@@ -203,4 +384,112 @@ WHERE update_date ~ '^\d{2}/\d{2}/\d{4}$' GROUP BY 1 ORDER BY 1;
 
 -- p20. PROVISIONAL. Rows on the latest update dates (top 5 dates)
 SELECT to_date(update_date, 'DD/MM/YYYY') AS update_date, count(*) AS rows_ FROM src
-WHERE update_date ~ '^\d{2}/\d{2}/\d{4}$' GROUP BY 1 ORDER BY 1 DESC LIMIT 5
+WHERE update_date ~ '^\d{2}/\d{2}/\d{4}$' GROUP BY 1 ORDER BY 1 DESC LIMIT 5;
+
+-- q0. PROVISIONAL. Target population: active ingredients with a usable Covalo INCI and no usable Covalo CAS
+SELECT count(*) AS target_products,
+       (SELECT count(DISTINCT i.value) FROM cov_id i JOIN target t USING (product_id) WHERE i.id_type = 'INCI') AS distinct_inci_on_them,
+       (SELECT count(*) FROM target t WHERE EXISTS (SELECT 1 FROM cov_id c WHERE c.product_id = t.product_id AND c.id_type = 'EC')) AS with_covalo_ec
+FROM target;
+
+-- q1. PROVISIONAL. Q2 cumulative match by level: distinct Covalo INCI (F1 values), products with INCI (at least one INCI matched), target products
+SELECT x.refset, 'L' || k.lvl AS up_to_level,
+       (SELECT count(*) FROM val_lvl v WHERE v.refset = x.refset AND v.lvl = k.lvl) AS distinct_inci_new_at_level,
+       (SELECT count(*) FROM val_lvl v WHERE v.refset = x.refset AND v.lvl <= k.lvl) AS distinct_inci_cum,
+       (SELECT count(*) FROM val_lvl v WHERE v.refset = x.refset) AS distinct_inci_total,
+       (SELECT count(*) FROM prod_lvl p WHERE p.refset = x.refset AND p.lvl <= k.lvl) AS products_cum,
+       (SELECT count(*) FROM prod_lvl p WHERE p.refset = x.refset) AS products_total,
+       (SELECT count(*) FROM prod_lvl p JOIN target t USING (product_id) WHERE p.refset = x.refset AND p.lvl <= k.lvl) AS target_products_cum,
+       (SELECT count(*) FROM target) AS target_total
+FROM (VALUES ('all'), ('excl_fragrance')) AS x(refset) CROSS JOIN (VALUES (0), (1), (2), (3)) AS k(lvl)
+ORDER BY 1, 2;
+
+-- q2. PROVISIONAL. Unmatched after L3, L3 partial matches, products with every INCI matched
+SELECT x.refset,
+       (SELECT count(*) FROM val_lvl v WHERE v.refset = x.refset AND v.lvl IS NULL) AS distinct_inci_unmatched,
+       (SELECT count(*) FROM val_lvl v WHERE v.refset = x.refset AND v.lvl IS NULL AND v.l3_partial) AS of_which_l3_some_components,
+       (SELECT coalesce(sum(c.products), 0) FROM val_lvl v JOIN cov_val c ON c.id_type = 'INCI' AND c.value = v.f1_value
+        WHERE v.refset = x.refset AND v.lvl IS NULL) AS product_links_unmatched,
+       (SELECT count(*) FROM prod_lvl p WHERE p.refset = x.refset AND p.lvl IS NULL) AS products_no_inci_matched,
+       (SELECT count(*) FROM prod_lvl p WHERE p.refset = x.refset AND p.all_inci_matched) AS products_all_inci_matched,
+       (SELECT count(*) FROM prod_lvl p JOIN target t USING (product_id) WHERE p.refset = x.refset AND p.lvl IS NULL) AS target_products_no_inci_matched
+FROM (VALUES ('all'), ('excl_fragrance')) AS x(refset);
+
+-- q3. PROVISIONAL. L3 detail (raw strings unmatched at L0 to L2): split, components, all / some / none matched
+SELECT refset,
+       count(*) FILTER (WHERE components > 1) AS raw_strings_split,
+       sum(components) FILTER (WHERE components > 1) AS components,
+       count(*) FILTER (WHERE components > 1 AND components_matched = components) AS all_components_matched,
+       count(*) FILTER (WHERE components > 1 AND components_matched BETWEEN 1 AND components - 1) AS some_components_matched,
+       count(*) FILTER (WHERE components > 1 AND components_matched = 0) AS no_component_matched,
+       count(*) FILTER (WHERE components = 1) AS raw_strings_not_split
+FROM l3sum GROUP BY 1 ORDER BY 1;
+
+-- q4. PROVISIONAL. Covalo INCI matched only through Fragrance-only CosIng rows (matched with all rows, not without them)
+SELECT count(*) AS distinct_inci, coalesce(sum(c.products), 0) AS product_links
+FROM val_lvl a JOIN val_lvl e ON e.f1_value = a.f1_value AND e.refset = 'excl_fragrance'
+JOIN cov_val c ON c.id_type = 'INCI' AND c.value = a.f1_value
+WHERE a.refset = 'all' AND a.lvl IS NOT NULL AND e.lvl IS NULL;
+
+-- q5. PROVISIONAL. Sample of 50 unmatched Covalo INCI (all CosIng rows), seed 20261021 (order by md5('20261021' || value)); pg_trgm not installed, no nearest CosIng INCI
+SELECT v.f1_value AS covalo_inci, c.products
+FROM val_lvl v JOIN cov_val c ON c.id_type = 'INCI' AND c.value = v.f1_value
+WHERE v.refset = 'all' AND v.lvl IS NULL
+ORDER BY md5('20261021' || v.f1_value) LIMIT 50;
+
+-- q6. PROVISIONAL. Q3 bridge class per matched product, by identifier type and match level; distinct Covalo INCI on those products
+SELECT b.refset, b.id_type, b.cls, count(*) AS products,
+       count(*) FILTER (WHERE b.lvl = 0) AS l0, count(*) FILTER (WHERE b.lvl = 1) AS l1,
+       count(*) FILTER (WHERE b.lvl = 2) AS l2, count(*) FILTER (WHERE b.lvl = 3) AS l3,
+       count(*) FILTER (WHERE b.product_id IN (SELECT product_id FROM target)) AS target_products,
+       (SELECT count(DISTINCT i.value) FROM cov_id i
+         WHERE i.id_type = 'INCI' AND i.product_id IN (SELECT b2.product_id FROM bridge b2
+                                                       WHERE b2.refset = b.refset AND b2.id_type = b.id_type AND b2.cls = b.cls)) AS distinct_inci
+FROM bridge b GROUP BY 1, 2, 3 ORDER BY 1, 2, 3;
+
+-- q7. PROVISIONAL. CosIng identifiers failing the check digit, excluded from the bridge
+SELECT x.refset, x.id_type, count(DISTINCT x.value) AS distinct_values, count(DISTINCT x.product_id) AS products_reaching_them,
+       count(DISTINCT x.product_id) FILTER (WHERE NOT EXISTS (
+           SELECT 1 FROM prod_cs_id y WHERE y.refset = x.refset AND y.product_id = x.product_id AND y.id_type = x.id_type AND y.check_ok))
+           AS products_with_only_failing_values
+FROM prod_cs_id x WHERE NOT x.check_ok GROUP BY 1, 2 ORDER BY 1, 2;
+
+-- q8. PROVISIONAL. Ambiguity in the gain group: gained identifiers that sit on several CosIng INCI, or are flagged generic
+SELECT b.refset, b.id_type, count(*) AS gain_products,
+       count(*) FILTER (WHERE g.on_gt1) AS on_more_than_1_cosing_inci,
+       count(*) FILTER (WHERE g.on_gt10) AS on_more_than_10_cosing_inci,
+       count(*) FILTER (WHERE g.generic) AS flagged_generic,
+       count(*) FILTER (WHERE g.n_values > 1) AS several_values_gained,
+       count(*) FILTER (WHERE (SELECT count(*) FROM cov_id i WHERE i.product_id = b.product_id AND i.id_type = 'INCI') > 1) AS product_has_several_inci
+FROM bridge b JOIN gain_amb g USING (refset, product_id, id_type)
+WHERE b.cls = 'gain' GROUP BY 1, 2 ORDER BY 1, 2;
+
+-- q9. PROVISIONAL. Ten examples of CAS conflict (all CosIng rows): Covalo INCI and CAS, CosIng CAS, match level
+SELECT b.product_id, 'L' || b.lvl AS lvl,
+       (SELECT string_agg(DISTINCT i.value, ' | ') FROM cov_id i WHERE i.product_id = b.product_id AND i.id_type = 'INCI') AS covalo_inci,
+       (SELECT string_agg(DISTINCT i.value, ' | ') FROM cov_id i WHERE i.product_id = b.product_id AND i.id_type = 'CAS') AS covalo_cas,
+       (SELECT string_agg(DISTINCT x.value, ' | ') FROM prod_cs_id x WHERE x.refset = 'all' AND x.product_id = b.product_id
+                                                                         AND x.id_type = 'CAS' AND x.check_ok) AS cosing_cas
+FROM bridge b WHERE b.refset = 'all' AND b.id_type = 'CAS' AND b.cls = 'conflict'
+ORDER BY md5('20261021' || b.product_id) LIMIT 10;
+
+-- q10. PROVISIONAL. Ten examples of ambiguous CAS gain (all CosIng rows; gained CAS on more than one CosIng INCI or generic)
+SELECT b.product_id, 'L' || b.lvl AS lvl,
+       (SELECT string_agg(DISTINCT i.value, ' | ') FROM cov_id i WHERE i.product_id = b.product_id AND i.id_type = 'INCI') AS covalo_inci,
+       (SELECT string_agg(DISTINCT x.value || ' (' || s.n_inci || ' INCI' || CASE WHEN x.generic THEN ', generic' ELSE '' END || ')', ' | ')
+          FROM prod_cs_id x JOIN cs_id_spread s USING (id_type, value)
+         WHERE x.refset = 'all' AND x.product_id = b.product_id AND x.id_type = 'CAS' AND x.check_ok) AS cosing_cas
+FROM bridge b
+WHERE b.refset = 'all' AND b.id_type = 'CAS' AND b.cls = 'gain'
+  AND EXISTS (SELECT 1 FROM prod_cs_id x JOIN cs_id_spread s USING (id_type, value)
+              WHERE x.refset = 'all' AND x.product_id = b.product_id AND x.id_type = 'CAS' AND x.check_ok
+                AND (s.n_inci > 1 OR x.generic))
+ORDER BY md5('20261021' || b.product_id) LIMIT 10;
+
+-- q11. PROVISIONAL. Q5 referee flag (view f3_referee_flag): distinct Covalo INCI per flag and level
+SELECT refset, flag, coalesce(match_level, '') AS match_level, count(*) AS distinct_inci
+FROM f3_referee_flag GROUP BY 1, 2, 3 ORDER BY 1, 2, 3;
+
+-- q12. PROVISIONAL. Q5 referee flag: ten example rows (all CosIng rows)
+SELECT covalo_inci, flag, match_level FROM f3_referee_flag WHERE refset = 'all'
+ORDER BY md5('20261021' || covalo_inci) LIMIT 10

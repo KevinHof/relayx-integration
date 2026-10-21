@@ -3,7 +3,8 @@
 Local only, read-only as relayx_app, TEMP objects only, no API calls, no joins to covalo or
 relayx_raw. Plan: docs/plans/2026-10-20-f3-cosing-bridge.md.
 - Reconciliation: `python -m relayx.cosing_reconcile data/cosing/cosing_clean.csv --table kevin.cosing_ingredients`
-- Profile: `python -m relayx.provisional_report sql/provisional/f3_cosing_bridge.sql --param cosing_table=kevin.cosing_ingredients`
+- Profile: `python -m relayx.provisional_report sql/provisional/f3_cosing_bridge.sql --setup sql/provisional/f1_matching_assessment.sql --param cosing_table=kevin.cosing_ingredients`
+  (sections p1 to p20; since part 2 the file reuses the F1 parser, hence `--setup`)
 
 ## Source and caveats
 CosIng Ingredients-Fragrance Inventory export, Wayback Machine capture (older snapshot, not
