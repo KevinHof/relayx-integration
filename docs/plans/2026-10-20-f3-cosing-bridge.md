@@ -1,7 +1,7 @@
 # Plan F3: CosIng as reference for INCI quality and the INCI to CAS bridge
 
-Status: SCHEDULED (2026-10-20). Table loaded 2026-10-21; profiling (Q1) blocked until the
-source file is in data/reference/cosing/ (empty on 2026-10-21).
+Status: Q1 profiled 2026-10-21 (results/2026-10-21-f3-cosing-profile.md); Q2 to Q6 wait
+for Kevin's review of the profile.
 Fast-track F, after F1b; feeds F4 (mismatch classification after the F2 lookup).
 
 ## Purpose
@@ -19,11 +19,15 @@ Cosmetics Annex II and Article 15, which print no INCI.
   readable by relayx_app (checked 2026-10-21). Columns: cosing_ref_no (integer), inci_name,
   inn_name, ph_eur_name, cas_no, ec_no, chem_iupac_name, restriction, function, update_date
   (all text).
-- Source file: expected in data/reference/cosing/; file name, size, SHA-256 and the
-  file-to-table reconciliation are recorded at profiling. PENDING: the folder was empty on
-  2026-10-21.
-- Snapshot date: the capture date; the latest `update_date` in the file is reported at
-  profiling as a lower bound.
+- Source file: data/cosing/cosing_clean.csv (data/reference/cosing/ is empty), 5,859,404
+  bytes, SHA-256 6cb1a58cc94d640e7cf2354c4a4b607d177362198587c5f8b39c12db3c6441d4. UTF-8,
+  comma-delimited, no lines before the header, no export date stated in the file. Whether
+  it was cleaned after capture: not recalled (Kevin, 2026-10-21); Kevin considers it
+  accurate.
+- Reconciliation (2026-10-21, `python -m relayx.cosing_reconcile`): 28,712 rows in file and
+  table, columns map one to one, same reference numbers, 0 differing values in any column.
+- Snapshot date: the capture date (PENDING); lower bound from the latest `update_date` in
+  the file: 2020-12-15.
 
 ## Query parameter
 The bridge queries take the CosIng table name as a parameter (default

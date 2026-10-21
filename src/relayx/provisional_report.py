@@ -6,6 +6,7 @@ The transaction is rolled back at the end, so nothing persists.
 
     python -m relayx.provisional_report sql/provisional/f1_matching_assessment.sql
     python -m relayx.provisional_report sql/provisional/f1b_additions.sql --setup sql/provisional/f1_matching_assessment.sql
+    python -m relayx.provisional_report sql/provisional/f3_cosing_bridge.sql --param cosing_table=kevin.cosing_ingredients
 """
 from __future__ import annotations
 
@@ -30,6 +31,22 @@ def split_report(sql: str) -> tuple[str, list[tuple[str, str]]]:
     return setup, sections
 
 
+PARAM_VALUE_RE = re.compile(r"^[a-z_][a-z0-9_]*(\.[a-z_][a-z0-9_]*)?$")
+
+
+def apply_params(sql: str, params: dict[str, str]) -> str:
+    """Replace {{name}} placeholders. Values must be plain (schema.)identifiers, so a table
+    name can be passed without opening the SQL to injection. Unfilled placeholders fail."""
+    for k, v in params.items():
+        if not PARAM_VALUE_RE.match(v):
+            raise ValueError(f"parameter {k}={v!r} is not a plain lower-case identifier")
+        sql = sql.replace("{{" + k + "}}", v)
+    left = re.findall(r"\{\{(\w+)\}\}", sql)
+    if left:
+        raise ValueError(f"missing --param for: {sorted(set(left))}")
+    return sql
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("sql_file", type=Path)
@@ -37,11 +54,15 @@ def main(argv: list[str] | None = None) -> int:
                     help="run the setup part of this report file first (repeatable), e.g. to reuse its TEMP objects")
     ap.add_argument("--env", default=".env")
     ap.add_argument("--timeout", type=int, default=300, help="statement timeout in seconds")
+    ap.add_argument("--param", action="append", default=[], metavar="NAME=VALUE",
+                    help="fill {{NAME}} placeholders, e.g. cosing_table=kevin.cosing_ingredients")
     a = ap.parse_args(argv)
     from dotenv import load_dotenv
     load_dotenv(a.env)
 
-    setup, sections = split_report(a.sql_file.read_text(encoding="utf-8-sig").replace("\r\n", "\n"))
+    params = dict(p.split("=", 1) for p in a.param)
+    setup, sections = split_report(apply_params(
+        a.sql_file.read_text(encoding="utf-8-sig").replace("\r\n", "\n"), params))
     with connect() as conn:
         with conn.cursor() as cur:
             cur.execute(f"SET LOCAL statement_timeout = '{a.timeout}s'")

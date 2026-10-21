@@ -1,4 +1,14 @@
-from relayx.provisional_report import split_report
+import pytest
+
+from relayx.provisional_report import apply_params, split_report
+
+
+def test_apply_params_fills_and_validates():
+    assert apply_params("SELECT * FROM {{t}}", {"t": "kevin.cosing_ingredients"}) == "SELECT * FROM kevin.cosing_ingredients"
+    with pytest.raises(ValueError, match="not a plain"):
+        apply_params("SELECT * FROM {{t}}", {"t": "x; DROP TABLE y"})
+    with pytest.raises(ValueError, match="missing --param"):
+        apply_params("SELECT * FROM {{t}}", {})
 
 
 def test_split_report_separates_setup_and_titled_sections():
