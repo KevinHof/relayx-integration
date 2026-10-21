@@ -1,7 +1,8 @@
 # Plan F3: CosIng as reference for INCI quality and the INCI to CAS bridge
 
 Status: Q1 profiled 2026-10-21 (results/2026-10-21-f3-cosing-profile.md). Q2, Q3 and Q5
-run 2026-10-21 (results/2026-10-21-f3-cosing-bridge-part2.md). Q4 and Q6 not started.
+run 2026-10-21 (results/2026-10-21-f3-cosing-bridge-part2.md). Tier sizing and validation
+sample (part 2b) 2026-10-22 (results/2026-10-22-f3-tier-sizing.md). Q4 and Q6 not started.
 Fast-track F, after F1b; feeds F4 (mismatch classification after the F2 lookup).
 
 ## Purpose

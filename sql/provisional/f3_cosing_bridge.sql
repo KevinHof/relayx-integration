@@ -1,6 +1,7 @@
 -- PROVISIONAL. F3 CosIng bridge (docs/plans/2026-10-20-f3-cosing-bridge.md).
 -- Part 1: profile (Q1, sections p*). Part 2: Q2 INCI matching, Q3 bridge, Q5 referee flag
--- (sections q*). Q4 and Q6 not included.
+-- (sections q0 to q12). Part 2b: tier sizing and validation sample (q13 to q16). Q4 and Q6 not
+-- included.
 -- Read-only; TEMP objects only. Needs the TEMP objects and the CAS/EC parser of F1
 -- (pg_temp.prep, tokens, cas_ok, ec_ok; one parser for Covalo and CosIng). The CosIng table is
 -- a parameter, so a current export can replace the Wayback snapshot:
@@ -32,6 +33,15 @@
 --   Product classes per identifier type: agree (Covalo and CosIng sets overlap), conflict (both
 --     present, no overlap), gain (Covalo none, CosIng some), covalo_only (Covalo some, CosIng
 --     none), neither. Covalo CAS/EC = F1 cov_id values (all format-valid tokens, as in F1).
+-- Rules, part 2b (tiers, sections q13 to q16):
+--   Mapping = (Covalo INCI F1 value, valid CosIng CAS or EC) per reference set, from the CosIng
+--     rows the INCI matched at its best level. Sharing = distinct CosIng INCI (L1 key) in the
+--     reference set carrying the number. Generic = "(generic)" after the number on any row.
+--   Mapping tier: T3 sharing > 10 or generic; T1 INCI level L0 or L1, exactly one valid number of
+--     that type for the INCI, sharing = 1, not generic; T2 otherwise.
+--   INCI tier: T1 if its single mapping is T1; T3 if all its mappings are T3; otherwise T2.
+--   Product (gain class only): contributing INCI = its F1 INCI values with a mapping of that type;
+--     best tier over them; all_t1 = every contributing INCI is T1. Blend = more than one F1 INCI.
 
 CREATE TEMP VIEW src AS SELECT * FROM {{cosing_table}};
 
@@ -239,6 +249,61 @@ SELECT refset, f1_value AS covalo_inci,
        CASE WHEN lvl IS NULL THEN 'not found in CosIng snapshot' ELSE 'found in CosIng snapshot' END AS flag,
        CASE WHEN lvl IS NULL THEN NULL ELSE 'L' || lvl END AS match_level
 FROM val_lvl;
+
+-- Part 2b: tiers ----------------------------------------------------------------------------
+
+-- Sharing per valid CosIng identifier and reference set: distinct CosIng INCI (L1 key).
+CREATE TEMP TABLE t_spread AS
+SELECT r.refset, i.id_type, i.value, count(DISTINCT r.k1) AS n_inci, bool_or(i.generic) AS generic
+FROM cs_id i JOIN refset r USING (cosing_ref_no) WHERE i.check_ok GROUP BY 1, 2, 3;
+CREATE UNIQUE INDEX ON t_spread (refset, id_type, value);
+ANALYZE t_spread;
+
+-- CosIng rows per Covalo INCI (F1 value) at its best level.
+CREATE TEMP TABLE t_inci_row AS
+SELECT DISTINCT v.refset, v.f1_value, v.lvl, m.cosing_ref_no
+FROM val_lvl v
+JOIN raw_lvl l ON l.refset = v.refset AND l.f1_value = v.f1_value AND l.lvl = v.lvl
+JOIN m_all m ON m.refset = l.refset AND m.raw_value = l.raw_value AND m.lvl = l.lvl
+WHERE v.lvl IS NOT NULL;
+CREATE INDEX ON t_inci_row (refset, f1_value);
+ANALYZE t_inci_row;
+
+-- Mappings with their tier.
+CREATE TEMP TABLE t_map AS
+WITH m AS (
+    SELECT r.refset, r.f1_value, r.lvl, i.id_type, i.value
+    FROM t_inci_row r JOIN cs_id i ON i.cosing_ref_no = r.cosing_ref_no AND i.check_ok
+    GROUP BY 1, 2, 3, 4, 5)
+SELECT m.*, s.n_inci, s.generic,
+       count(*) OVER (PARTITION BY m.refset, m.f1_value, m.id_type) AS n_numbers,
+       CASE WHEN s.n_inci > 10 OR s.generic THEN 'T3'
+            WHEN m.lvl <= 1 AND count(*) OVER (PARTITION BY m.refset, m.f1_value, m.id_type) = 1
+                 AND s.n_inci = 1 THEN 'T1'
+            ELSE 'T2' END AS tier
+FROM m JOIN t_spread s USING (refset, id_type, value);
+CREATE INDEX ON t_map (refset, id_type, f1_value);
+ANALYZE t_map;
+
+-- INCI-level tier.
+CREATE TEMP TABLE t_inci AS
+SELECT refset, id_type, f1_value, count(*) AS n_map,
+       CASE WHEN count(*) = 1 AND bool_and(tier = 'T1') THEN 'T1'
+            WHEN bool_and(tier = 'T3') THEN 'T3' ELSE 'T2' END AS tier
+FROM t_map GROUP BY 1, 2, 3;
+CREATE INDEX ON t_inci (refset, id_type, f1_value);
+ANALYZE t_inci;
+
+-- Gain products: best tier over contributing INCI, all contributing INCI T1, blend or not.
+CREATE TEMP TABLE t_gain AS
+SELECT b.refset, b.id_type, b.product_id,
+       (SELECT count(*) FROM cov_id i WHERE i.product_id = b.product_id AND i.id_type = 'INCI') > 1 AS blend,
+       min(t.tier) AS best_tier, bool_and(t.tier = 'T1') AS all_t1, count(t.tier) AS n_contrib
+FROM bridge b
+LEFT JOIN cov_id c ON c.product_id = b.product_id AND c.id_type = 'INCI'
+LEFT JOIN t_inci t ON t.refset = b.refset AND t.id_type = b.id_type AND t.f1_value = c.value
+WHERE b.cls = 'gain'
+GROUP BY 1, 2, 3;
 
 -- REPORT
 
@@ -492,4 +557,68 @@ FROM f3_referee_flag GROUP BY 1, 2, 3 ORDER BY 1, 2, 3;
 
 -- q12. PROVISIONAL. Q5 referee flag: ten example rows (all CosIng rows)
 SELECT covalo_inci, flag, match_level FROM f3_referee_flag WHERE refset = 'all'
-ORDER BY md5('20261021' || covalo_inci) LIMIT 10
+ORDER BY md5('20261021' || covalo_inci) LIMIT 10;
+
+-- q13. PROVISIONAL. Part 2b item 1: distinct Covalo INCI with at least one valid CosIng number, by INCI tier; mappings by mapping tier; product links of those INCI
+SELECT x.refset, y.id_type, z.tier,
+       (SELECT count(*) FROM t_inci i WHERE i.refset = x.refset AND i.id_type = y.id_type AND i.tier = z.tier) AS distinct_inci,
+       (SELECT coalesce(sum(c.products), 0) FROM t_inci i JOIN cov_val c ON c.id_type = 'INCI' AND c.value = i.f1_value
+         WHERE i.refset = x.refset AND i.id_type = y.id_type AND i.tier = z.tier) AS product_links,
+       (SELECT count(*) FROM t_map m WHERE m.refset = x.refset AND m.id_type = y.id_type AND m.tier = z.tier) AS mappings
+FROM (VALUES ('all'), ('excl_fragrance')) AS x(refset) CROSS JOIN (VALUES ('CAS'), ('EC')) AS y(id_type)
+CROSS JOIN (VALUES ('T1'), ('T2'), ('T3')) AS z(tier)
+ORDER BY 1, 2, 3;
+
+-- q13b. PROVISIONAL. Part 2b item 1: matched Covalo INCI without a valid CosIng number; reasons for T2 mappings (not exclusive)
+SELECT x.refset, y.id_type,
+       (SELECT count(*) FROM val_lvl v WHERE v.refset = x.refset AND v.lvl IS NOT NULL) AS matched_inci,
+       (SELECT count(*) FROM val_lvl v WHERE v.refset = x.refset AND v.lvl IS NOT NULL
+           AND NOT EXISTS (SELECT 1 FROM t_inci i WHERE i.refset = v.refset AND i.id_type = y.id_type AND i.f1_value = v.f1_value)) AS matched_inci_no_valid_number,
+       (SELECT count(*) FROM t_map m WHERE m.refset = x.refset AND m.id_type = y.id_type AND m.tier = 'T2') AS t2_mappings,
+       (SELECT count(*) FROM t_map m WHERE m.refset = x.refset AND m.id_type = y.id_type AND m.tier = 'T2' AND m.lvl >= 2) AS t2_level_l2_l3,
+       (SELECT count(*) FROM t_map m WHERE m.refset = x.refset AND m.id_type = y.id_type AND m.tier = 'T2' AND m.n_numbers > 1) AS t2_several_numbers,
+       (SELECT count(*) FROM t_map m WHERE m.refset = x.refset AND m.id_type = y.id_type AND m.tier = 'T2' AND m.n_inci BETWEEN 2 AND 10) AS t2_sharing_2_to_10
+FROM (VALUES ('all'), ('excl_fragrance')) AS x(refset) CROSS JOIN (VALUES ('CAS'), ('EC')) AS y(id_type)
+ORDER BY 1, 2;
+
+-- q14. PROVISIONAL. Part 2b item 1: mappings by number of CosIng INCI sharing the number
+SELECT refset, id_type,
+       CASE WHEN n_inci = 1 THEN '1' WHEN n_inci <= 3 THEN '2 to 3' WHEN n_inci <= 10 THEN '4 to 10'
+            WHEN n_inci <= 50 THEN '11 to 50' ELSE 'more than 50' END AS sharing,
+       count(*) AS mappings, count(DISTINCT f1_value) AS distinct_covalo_inci, count(DISTINCT value) AS distinct_numbers
+FROM t_map GROUP BY 1, 2, 3 ORDER BY 1, 2, min(n_inci);
+
+-- q15. PROVISIONAL. Part 2b item 2: gain products (Covalo has none of that type) by best tier of their contributing INCI; all gained numbers from T1 INCI; single-INCI vs blend
+SELECT refset, id_type, CASE WHEN blend THEN 'blend' ELSE 'single_inci' END AS product_kind,
+       count(*) AS gain_products,
+       count(*) FILTER (WHERE best_tier = 'T1') AS best_t1, count(*) FILTER (WHERE best_tier = 'T2') AS best_t2,
+       count(*) FILTER (WHERE best_tier = 'T3') AS best_t3, count(*) FILTER (WHERE best_tier IS NULL) AS no_tier,
+       count(*) FILTER (WHERE all_t1) AS all_gained_from_t1_inci
+FROM t_gain GROUP BY 1, 2, 3 ORDER BY 1, 2, 3;
+
+-- q16. PROVISIONAL. Part 2b item 3: validation sample, CAS mappings (all CosIng rows), 60 T1 / 40 T2 / 20 T3, one weight per mapping, seed 20261022 (order by md5('20261022' || covalo_inci || '|' || cas)); written to data/validation/f3_tier_sample.csv
+WITH s AS (
+    SELECT m.*, row_number() OVER (PARTITION BY m.tier ORDER BY md5('20261022' || m.f1_value || '|' || m.value)) AS rn
+    FROM t_map m WHERE m.refset = 'all' AND m.id_type = 'CAS'),
+pick AS (
+    SELECT * FROM s WHERE (tier = 'T1' AND rn <= 60) OR (tier = 'T2' AND rn <= 40) OR (tier = 'T3' AND rn <= 20)),
+sup AS (
+    SELECT p.f1_value, p.value, r.cosing_ref_no
+    FROM pick p JOIN t_inci_row r ON r.refset = 'all' AND r.f1_value = p.f1_value
+    JOIN cs_id i ON i.cosing_ref_no = r.cosing_ref_no AND i.id_type = 'CAS' AND i.value = p.value AND i.check_ok)
+SELECT row_number() OVER (ORDER BY p.tier, p.rn) AS sample_id, p.tier, p.f1_value AS covalo_inci,
+       (SELECT string_agg(DISTINCT regexp_replace(btrim(c.inci_name), '[\t\r\n]+', ' ', 'g'), ' | ')
+          FROM sup JOIN src c USING (cosing_ref_no) WHERE sup.f1_value = p.f1_value AND sup.value = p.value) AS cosing_inci,
+       'L' || p.lvl AS match_level,
+       (SELECT string_agg(DISTINCT sup.cosing_ref_no::text, ' | ')
+          FROM sup WHERE sup.f1_value = p.f1_value AND sup.value = p.value) AS cosing_ref_no,
+       p.value AS cas,
+       (SELECT string_agg(DISTINCT e.value, ' | ')
+          FROM sup JOIN cs_id e ON e.cosing_ref_no = sup.cosing_ref_no AND e.id_type = 'EC' AND e.check_ok
+         WHERE sup.f1_value = p.f1_value AND sup.value = p.value) AS ec,
+       (SELECT string_agg(DISTINCT regexp_replace(btrim(c.chem_iupac_name), '[\t\r\n]+', ' ', 'g'), ' | ')
+          FROM sup JOIN src c USING (cosing_ref_no) WHERE sup.f1_value = p.f1_value AND sup.value = p.value) AS cosing_chem_name,
+       p.n_inci AS cosing_inci_sharing_cas,
+       (SELECT c.products FROM cov_val c WHERE c.id_type = 'INCI' AND c.value = p.f1_value) AS covalo_products,
+       '' AS verdict, '' AS note
+FROM pick p ORDER BY 1
