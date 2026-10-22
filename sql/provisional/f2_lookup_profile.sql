@@ -88,6 +88,169 @@ UPDATE f2_prod SET category = CASE
 CREATE TEMP TABLE f2_f1_match AS
 SELECT DISTINCT i.product_id FROM cov_id i JOIN cov_val v USING (id_type, value) WHERE v.in_replay;
 
+-- Drill-down (sections b1 to b6) -------------------------------------------------------------
+-- B4 (Kevin, 2026-10-22), per group (product, matched replay entry, matched Covalo value), first
+--   class that applies in this order:
+--   2 guard: entryScope not GROUP / GENERIC_CLASS, and the lookup body for the matched value has an
+--     identifierCaveats note reporting entries set aside (note text "were NOT returned" or "were
+--     removed"). 2a confirmed: the note names this entry's logicalEntryId, or a number this entry
+--     prints in its own identifier field of the searched type (identifiers cas/casList for a CAS
+--     search, ec/ecList for an EC search; F1 tokens); numbers are taken from the note only by exact
+--     CAS (\d{2,7}-\d{2}-\d) or EC (\d{3}-\d{3}-\d) pattern. 2b probable: otherwise.
+--   1 GROUP: entryScope GROUP or GENERIC_CLASS.
+--   3 exemption or inventory: annexType EXEMPTION or INVENTORY_LISTED.
+--   4 other.
+--   F1 match route per group (F1 rules unchanged, value derivations as in rx_id): own printed field
+--   (identifiers cas/ec/inci/name/nameEn/clpIndex/colourIndex strings and casList/ecList/inciList),
+--   linked substance with printedByText true, enriched (linked substance printedByText false,
+--   nomenclature, synonyms). The v1.1 guide could not be read here (no PDF reader).
+--   Scope class as in sql/provisional/f1b_additions.sql (docs/data-model/cosmetics-scope.md, PROPOSED).
+-- B5 routes, per (product, HAS_DATA value, returned constraint): reachedViaGroupEntry true; INCI
+--   index enrichment = INCI item and matchedBy contains substanceIndex; other.
+
+CREATE TEMP TABLE f2_item_extra AS
+SELECT f.call_no, f.idx, f.id_type, f.value, r -> 'identifierCaveats' AS caveats, r -> 'withheldByIdentifier' AS withheld,
+       EXISTS (SELECT 1 FROM jsonb_array_elements(CASE WHEN jsonb_typeof(r -> 'identifierCaveats') = 'array' THEN r -> 'identifierCaveats' ELSE '[]' END) e
+               WHERE e ->> 'note' LIKE '%its own text prints a DIFFERENT number in the field you searched%') AS guard_caveat
+FROM f2_item f JOIN f2_call c USING (call_no)
+CROSS JOIN LATERAL jsonb_array_elements(c.body -> 'results') r
+WHERE (r ->> 'index')::int = f.idx;
+CREATE INDEX ON f2_item_extra (id_type, value);
+
+CREATE TEMP TABLE f2_constraint AS
+SELECT c.call_no, (r ->> 'index')::int AS idx, k ->> 'logicalEntryId' AS logical_entry_id, k -> 'matchedBy' AS matched_by,
+       coalesce((k ->> 'reachedViaGroupEntry')::boolean, false) AS via_group, k ->> 'annexType' AS annex_type,
+       k ->> 'annexRef' AS annex_ref, k ->> 'entryRef' AS entry_ref, k ->> 'entryScope' AS entry_scope
+FROM f2_call c
+CROSS JOIN LATERAL jsonb_array_elements(c.body -> 'results') r
+CROSS JOIN LATERAL jsonb_array_elements(CASE WHEN jsonb_typeof(r -> 'constraints') = 'array' THEN r -> 'constraints' ELSE '[]' END) k;
+CREATE INDEX ON f2_constraint (call_no, idx);
+
+CREATE TEMP TABLE f2_entry_class AS
+SELECT DISTINCT ON (e.logical_entry_id) e.logical_entry_id, e.annex_type, e.entry_scope, ev.annex_ref, ev.entry_ref,
+       CASE WHEN ev.annex_ref IN ('Annex II', 'Annex III', 'Annex IV', 'Annex V', 'Annex VI', 'Article 15(1)', 'Article 15(2)')
+                 THEN '1 core cosmetics'
+            WHEN ev.annex_ref IN ('Annex VI Table 3', 'REACH Annex XVII', 'REACH Annex XIV', 'REACH Candidate List',
+                               'POPs Regulation', 'Annex I, part A') THEN '2 indirectly relevant'
+            WHEN ev.annex_ref IN ('CMR category 1A', 'CMR category 1B', 'Mutagens', 'Toxic category 1', 'Toxic category 2')
+                 THEN '3 REACH CMR appendices (class open)'
+            WHEN ev.text_ref IN ('32026R1383', '32025R0006') THEN '4 marginal'
+            WHEN ev.annex_ref IN ('Exemptions', 'REACH Annex V') THEN '5 not relevant'
+            ELSE '9 unclassified' END AS scope_class
+FROM rx_entry e
+JOIN (SELECT DISTINCT logical_entry_id, payload ->> 'annexRef' AS annex_ref, payload ->> 'entryRef' AS entry_ref,
+             payload -> 'text' ->> 'officialRef' AS text_ref
+      FROM relayx_raw.entry_version WHERE run_id = '20261019T143522Z_eu') ev USING (logical_entry_id)
+ORDER BY e.logical_entry_id;
+CREATE UNIQUE INDEX ON f2_entry_class (logical_entry_id);
+
+-- B4: F1 values per entry, tagged with the route F1 took (same derivations as F1 rx_id).
+CREATE TEMP TABLE f2_rx_route AS
+SELECT p.logical_entry_id, p.id_type, t.value, 'own field' AS route
+FROM rx_printed p CROSS JOIN LATERAL pg_temp.tokens(p.raw_value, p.id_type) AS t(value) WHERE p.id_type IN ('CAS', 'EC')
+UNION
+SELECT e.logical_entry_id, l.id_type, CASE WHEN l.id_type = 'INCI' THEN pg_temp.norm_inci(v #>> '{}') ELSE v #>> '{}' END, 'own field'
+FROM rx_entry e
+CROSS JOIN (VALUES ('casList', 'CAS'), ('ecList', 'EC'), ('inciList', 'INCI')) AS l(key, id_type)
+CROSS JOIN LATERAL jsonb_array_elements(
+    CASE WHEN jsonb_typeof(e.payload -> 'identifiers' -> l.key) = 'array' THEN e.payload -> 'identifiers' -> l.key ELSE '[]' END) AS v
+UNION
+SELECT p.logical_entry_id, p.id_type, CASE p.id_type WHEN 'INCI' THEN pg_temp.norm_inci(s) ELSE pg_temp.norm_name(s) END, 'own field'
+FROM rx_printed p CROSS JOIN LATERAL regexp_split_to_table(p.raw_value, '\s*\[\d+\]\s*|;') AS s
+WHERE p.id_type IN ('INCI', 'NAME')
+UNION
+SELECT p.logical_entry_id, p.id_type, pg_temp.norm_inci(p.raw_value), 'own field'
+FROM rx_printed p WHERE p.id_type IN ('CLP_INDEX', 'COLOUR_INDEX')
+UNION
+SELECT e.logical_entry_id,
+       CASE WHEN i ->> 'type' IN ('LOCAL_NAME', 'SYNONYM') THEN 'NAME' ELSE i ->> 'type' END,
+       CASE WHEN i ->> 'type' IN ('LOCAL_NAME', 'SYNONYM') THEN pg_temp.norm_name(i ->> 'value')
+            WHEN i ->> 'type' IN ('CAS', 'EC') THEN pg_temp.prep(btrim(i ->> 'value'))
+            ELSE pg_temp.norm_inci(i ->> 'value') END,
+       CASE WHEN (i ->> 'printedByText')::boolean THEN 'linked printedByText' ELSE 'enriched' END
+FROM rx_entry e
+CROSS JOIN LATERAL jsonb_array_elements(
+    CASE WHEN jsonb_typeof(e.payload -> 'linkedSubstances') = 'array' THEN e.payload -> 'linkedSubstances' ELSE '[]' END) AS ls
+CROSS JOIN LATERAL jsonb_array_elements(
+    CASE WHEN jsonb_typeof(ls -> 'identifiers') = 'array' THEN ls -> 'identifiers' ELSE '[]' END) AS i
+UNION
+SELECT e.logical_entry_id, n.id_type,
+       CASE WHEN n.id_type = 'NAME' THEN pg_temp.norm_name(n.v) ELSE pg_temp.norm_inci(n.v) END, 'enriched'
+FROM rx_entry e
+CROSS JOIN LATERAL (VALUES
+    ('INCI', e.payload -> 'nomenclature' ->> 'inciEu'),
+    ('INCI', e.payload -> 'nomenclature' ->> 'inciUs'),
+    ('INCI', e.payload -> 'nomenclature' ->> 'inciIecic'),
+    ('NAME', e.payload -> 'nomenclature' ->> 'chemicalName'),
+    ('COLOUR_INDEX', e.payload -> 'nomenclature' ->> 'colourIndex')) AS n(id_type, v)
+WHERE n.v IS NOT NULL
+UNION
+SELECT e.logical_entry_id, 'NAME', pg_temp.norm_name(s #>> '{}'), 'enriched'
+FROM rx_entry e
+CROSS JOIN LATERAL jsonb_array_elements(
+    CASE WHEN jsonb_typeof(e.payload -> 'nomenclature' -> 'synonyms') = 'array' THEN e.payload -> 'nomenclature' -> 'synonyms' ELSE '[]' END) AS s;
+DELETE FROM f2_rx_route WHERE value IS NULL;
+CREATE INDEX ON f2_rx_route (id_type, value);
+CREATE INDEX ON f2_rx_route (logical_entry_id);
+
+-- B4: set-aside caveat notes per queried value, with the numbers they show (exact patterns).
+CREATE TEMP TABLE f2_setaside AS
+SELECT x.id_type, x.value, e ->> 'note' AS note,
+       ARRAY(SELECT DISTINCT m[1] FROM regexp_matches(e ->> 'note', '(?<!\d)(\d{2,7}-\d{2}-\d)(?!\d)', 'g') m) AS cas_in_note,
+       ARRAY(SELECT DISTINCT m[1] FROM regexp_matches(e ->> 'note', '(?<!\d)(\d{3}-\d{3}-\d)(?!\d)', 'g') m) AS ec_in_note
+FROM f2_item_extra x
+CROSS JOIN LATERAL jsonb_array_elements(CASE WHEN jsonb_typeof(x.caveats) = 'array' THEN x.caveats ELSE '[]' END) e
+WHERE e ->> 'note' ~ '(were NOT returned|were removed)';
+CREATE INDEX ON f2_setaside (id_type, value);
+
+-- B4: replay-only products, matched (entry, value) groups with route, flags and class.
+CREATE TEMP TABLE f2_b4 AS
+WITH m AS (
+    SELECT i.product_id, i.id_type, i.value, r.logical_entry_id,
+           bool_or(r.route = 'own field') AS own_field, bool_or(r.route = 'linked printedByText') AS linked_printed,
+           bool_or(r.route = 'enriched') AS enriched
+    FROM cov_id i JOIN f2_rx_route r USING (id_type, value)
+    WHERE i.product_id IN (SELECT product_id FROM f2_f1_match)
+      AND i.product_id IN (SELECT product_id FROM f2_prod WHERE NOT has_data)
+    GROUP BY 1, 2, 3, 4),
+g AS (
+    SELECT m.*, ec.annex_type, ec.entry_scope, ec.annex_ref, ec.entry_ref, ec.scope_class, f.status,
+           ec.entry_scope IN ('GROUP', 'GENERIC_CLASS') AS c_group,
+           ec.annex_type IN ('EXEMPTION', 'INVENTORY_LISTED') AS c_exempt,
+           ec.entry_scope NOT IN ('GROUP', 'GENERIC_CLASS')
+               AND EXISTS (SELECT 1 FROM f2_setaside s WHERE s.id_type = m.id_type AND s.value = m.value) AS c_setaside,
+           EXISTS (SELECT 1 FROM f2_setaside s WHERE s.id_type = m.id_type AND s.value = m.value
+                   AND (position(m.logical_entry_id IN s.note) > 0
+                        OR (m.id_type = 'CAS' AND s.cas_in_note && ARRAY(SELECT o.value FROM f2_rx_route o WHERE o.logical_entry_id = m.logical_entry_id
+                                                                           AND o.id_type = 'CAS' AND o.route = 'own field'))
+                        OR (m.id_type = 'EC' AND s.ec_in_note && ARRAY(SELECT o.value FROM f2_rx_route o WHERE o.logical_entry_id = m.logical_entry_id
+                                                                         AND o.id_type = 'EC' AND o.route = 'own field')))) AS attributable,
+           (SELECT string_agg(DISTINCT o.value, ' | ') FROM f2_rx_route o WHERE o.logical_entry_id = m.logical_entry_id
+              AND o.id_type = m.id_type AND o.route = 'own field') AS entry_own_field
+    FROM m JOIN f2_entry_class ec USING (logical_entry_id)
+    LEFT JOIN f2_item f ON f.id_type = m.id_type AND f.value = m.value)
+SELECT g.*,
+       CASE WHEN own_field THEN 'own printed field' WHEN linked_printed THEN 'linked substance printedByText' ELSE 'enriched' END AS f1_route,
+       CASE WHEN c_setaside AND attributable THEN '2a guard, confirmed'
+            WHEN c_setaside THEN '2b guard, probable'
+            WHEN c_group THEN '1 GROUP'
+            WHEN c_exempt THEN '3 exemption or inventory'
+            ELSE '4 other' END AS b4_class,
+       CASE WHEN c_setaside THEN 1 WHEN c_group THEN 2 WHEN c_exempt THEN 3 ELSE 4 END AS prec
+FROM g;
+
+-- B5: lookup-only products, routes of their HAS_DATA constraints.
+CREATE TEMP TABLE f2_b5 AS
+SELECT DISTINCT v.product_id, f.id_type, f.value, k.logical_entry_id, k.annex_type, k.annex_ref, k.entry_ref,
+       CASE WHEN k.via_group THEN '1 reachedViaGroupEntry'
+            WHEN f.id_type = 'INCI' AND k.matched_by ? 'substanceIndex' THEN '2 INCI index enrichment'
+            ELSE '3 other' END AS route, k.matched_by::text AS matched_by
+FROM f2_prod_val v
+JOIN f2_item f ON f.id_type = v.id_type AND f.value = v.value AND f.status = 'HAS_DATA'
+JOIN f2_constraint k ON k.call_no = f.call_no AND k.idx = f.idx
+WHERE v.product_id IN (SELECT product_id FROM f2_prod WHERE has_data)
+  AND v.product_id NOT IN (SELECT product_id FROM f2_f1_match);
+
 -- REPORT
 
 -- r1. PROVISIONAL. Run integrity: calls, units sent, results, distinct items, value-list size, HTTP status
@@ -304,4 +467,117 @@ WHERE f.status = 'NOT_SEARCHED' AND (r ->> 'index')::int = f.idx
 
 -- r13. PROVISIONAL. Count of identifier-less current constraints stated in searchMeans
 SELECT substring(r ->> 'searchMeans' from 'reach the ([0-9]+) current constraints') AS stated_count, count(*) AS items
-FROM f2_call a, jsonb_array_elements(a.body -> 'results') r GROUP BY 1 ORDER BY 1
+FROM f2_call a, jsonb_array_elements(a.body -> 'results') r GROUP BY 1 ORDER BY 1;
+
+-- b1. PROVISIONAL. B1 UNKNOWN_IDENTIFIER CAS, 30 most frequent: products, most frequent Covalo INCI on the same products, in the replay
+SELECT f.value AS cas, f.products,
+       (SELECT i.value || ' (' || count(*) || ')' FROM cov_id c JOIN cov_id i ON i.product_id = c.product_id AND i.id_type = 'INCI'
+         WHERE c.id_type = 'CAS' AND c.value = f.value GROUP BY i.value ORDER BY count(*) DESC, i.value LIMIT 1) AS top_covalo_inci,
+       coalesce((SELECT CASE WHEN has_literal THEN 'printed' ELSE 'enriched only' END FROM rx_val r WHERE r.id_type = 'CAS' AND r.value = f.value), 'no') AS in_replay
+FROM f2_item f WHERE f.id_type = 'CAS' AND f.status = 'UNKNOWN_IDENTIFIER' ORDER BY f.products DESC, f.value LIMIT 30
+
+-- b1b. PROVISIONAL. B1 UNKNOWN_IDENTIFIER CAS found in the replay (all, printed or enriched)
+SELECT count(*) AS unknown_cas, count(*) FILTER (WHERE r.value IS NOT NULL) AS in_replay,
+       count(*) FILTER (WHERE r.has_literal) AS printed, string_agg(f.value, ', ' ORDER BY f.products DESC) FILTER (WHERE r.value IS NOT NULL) AS values_in_replay
+FROM f2_item f LEFT JOIN rx_val r ON r.id_type = 'CAS' AND r.value = f.value
+WHERE f.id_type = 'CAS' AND f.status = 'UNKNOWN_IDENTIFIER'
+
+-- b2. PROVISIONAL. B2 UNKNOWN_IDENTIFIER INCI, 30 most frequent: products, most frequent Covalo CAS on the same products and its lookup status
+SELECT f.value AS inci, f.products, t.cas || ' (' || t.n || ')' AS top_covalo_cas,
+       (SELECT g.status FROM f2_item g WHERE g.id_type = 'CAS' AND g.value = t.cas) AS cas_status
+FROM f2_item f
+LEFT JOIN LATERAL (SELECT c.value AS cas, count(*) AS n FROM cov_id i JOIN cov_id c ON c.product_id = i.product_id AND c.id_type = 'CAS'
+                   WHERE i.id_type = 'INCI' AND i.value = f.value GROUP BY c.value ORDER BY count(*) DESC, c.value LIMIT 1) t ON true
+WHERE f.id_type = 'INCI' AND f.status = 'UNKNOWN_IDENTIFIER' ORDER BY f.products DESC, f.value LIMIT 30
+
+-- b3. PROVISIONAL. B3 KNOWN_WITHOUT_DATA CAS, 15 most frequent: products, most frequent Covalo INCI, in the replay
+SELECT f.value AS cas, f.products,
+       (SELECT i.value || ' (' || count(*) || ')' FROM cov_id c JOIN cov_id i ON i.product_id = c.product_id AND i.id_type = 'INCI'
+         WHERE c.id_type = 'CAS' AND c.value = f.value GROUP BY i.value ORDER BY count(*) DESC, i.value LIMIT 1) AS top_covalo_inci,
+       coalesce((SELECT CASE WHEN has_literal THEN 'printed' ELSE 'enriched only' END FROM rx_val r WHERE r.id_type = 'CAS' AND r.value = f.value), 'no') AS in_replay
+FROM f2_item f WHERE f.id_type = 'CAS' AND f.status = 'KNOWN_WITHOUT_DATA' ORDER BY f.products DESC, f.value LIMIT 15
+
+-- b4. PROVISIONAL. B4 replay-only products by class: groups (product, entry, value), distinct (entry, value), products (a product can sit in several classes), products by first class in precedence order
+SELECT b4_class, count(*) AS groups_, count(DISTINCT (logical_entry_id, id_type, value)) AS entry_value_pairs,
+       count(DISTINCT product_id) AS products,
+       (SELECT count(*) FROM (SELECT DISTINCT ON (product_id) product_id, b4_class AS c FROM f2_b4 ORDER BY product_id, prec, b4_class) x
+         WHERE x.c = b.b4_class) AS products_first_class
+FROM f2_b4 b GROUP BY 1 ORDER BY 1
+
+-- b4r. PROVISIONAL. B4 groups per class and F1 match route (route = own printed field, else linked substance printedByText, else enriched)
+SELECT b4_class, f1_route, count(*) AS groups_, count(DISTINCT product_id) AS products,
+       count(*) FILTER (WHERE own_field) AS also_own_field, count(*) FILTER (WHERE linked_printed) AS also_linked_printed,
+       count(*) FILTER (WHERE enriched) AS also_enriched
+FROM f2_b4 GROUP BY 1, 2 ORDER BY 1, 2
+
+-- b4m. PROVISIONAL. B4 groups meeting more than one class definition (GROUP, guard, exemption/inventory), with the combinations
+SELECT concat_ws(' + ', CASE WHEN c_setaside THEN 'guard' END, CASE WHEN c_group THEN 'GROUP' END,
+                 CASE WHEN c_exempt THEN 'exemption/inventory' END) AS definitions_met,
+       count(*) AS groups_, count(DISTINCT product_id) AS products
+FROM f2_b4 WHERE (c_setaside::int + c_group::int + c_exempt::int) > 1 GROUP BY 1 ORDER BY 2 DESC
+
+-- b4e. PROVISIONAL. B4 up to 10 examples per class (distinct entry and value, most products first)
+SELECT b4_class, logical_entry_id, annex_ref, entry_ref, annex_type, entry_scope, scope_class, id_type, value, f1_route,
+       left(entry_own_field, 160) AS entry_own_field, status, products
+FROM (SELECT b4_class, logical_entry_id, annex_ref, entry_ref, annex_type, entry_scope, scope_class, id_type, value, f1_route,
+             entry_own_field, status, count(DISTINCT product_id) AS products,
+             row_number() OVER (PARTITION BY b4_class ORDER BY count(DISTINCT product_id) DESC, value, logical_entry_id) AS rn
+      FROM f2_b4 GROUP BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12) x
+WHERE rn <= 10 ORDER BY b4_class, products DESC, value
+
+-- b4c. PROVISIONAL. B4 class 2 examples: set-aside caveat notes as served, with the numbers taken from them
+SELECT DISTINCT b.b4_class, b.id_type, b.value, b.logical_entry_id, b.entry_ref, s.cas_in_note::text AS cas_in_note,
+       s.ec_in_note::text AS ec_in_note, s.note AS caveat_as_served
+FROM f2_b4 b JOIN f2_setaside s ON s.id_type = b.id_type AND s.value = b.value
+WHERE b.b4_class LIKE '2%' ORDER BY 1, 2, 3, 4
+
+-- b5. PROVISIONAL. B5 lookup-only products by route (a product can have several routes; first route by order)
+SELECT route, count(DISTINCT product_id) AS products, count(DISTINCT logical_entry_id) AS entries,
+       (SELECT count(*) FROM (SELECT product_id, min(route) AS r FROM f2_b5 GROUP BY 1) x WHERE x.r = b.route) AS products_first_route
+FROM f2_b5 b GROUP BY 1 ORDER BY 1
+
+-- b5b. PROVISIONAL. B5 the 10 most frequent entries (by lookup-only products), with route and the values that reached them
+SELECT logical_entry_id, annex_ref, entry_ref, annex_type, string_agg(DISTINCT route, ', ') AS routes,
+       string_agg(DISTINCT matched_by, ', ') AS matched_by, count(DISTINCT product_id) AS products,
+       left(string_agg(DISTINCT id_type || '=' || value, ' | '), 200) AS values_
+FROM f2_b5 GROUP BY 1, 2, 3, 4 ORDER BY products DESC, 1 LIMIT 10
+
+-- b5c. PROVISIONAL. B5 lookup-only products: matched value types and whether the returned entry is in the replay
+SELECT id_type, route, count(DISTINCT product_id) AS products,
+       count(DISTINCT logical_entry_id) FILTER (WHERE logical_entry_id IN (SELECT logical_entry_id FROM f2_replay_id)) AS entries_in_replay,
+       count(DISTINCT logical_entry_id) AS entries
+FROM f2_b5 GROUP BY 1, 2 ORDER BY 1, 2
+
+-- b6. PROVISIONAL. B6 replay 20261019T143522Z_eu: versions and entries with no CAS, EC or INCI printed (identifiers cas, ec, inci, casList, ecList, inciList)
+WITH v AS (
+    SELECT logical_entry_id, known_since, change_kind,
+           coalesce(nullif(btrim(payload -> 'identifiers' ->> 'cas'), ''), nullif(btrim(payload -> 'identifiers' ->> 'ec'), ''),
+                    nullif(btrim(payload -> 'identifiers' ->> 'inci'), '')) IS NULL
+           AND coalesce(jsonb_array_length(CASE WHEN jsonb_typeof(payload -> 'identifiers' -> 'casList') = 'array' THEN payload -> 'identifiers' -> 'casList' END), 0) = 0
+           AND coalesce(jsonb_array_length(CASE WHEN jsonb_typeof(payload -> 'identifiers' -> 'ecList') = 'array' THEN payload -> 'identifiers' -> 'ecList' END), 0) = 0
+           AND coalesce(jsonb_array_length(CASE WHEN jsonb_typeof(payload -> 'identifiers' -> 'inciList') = 'array' THEN payload -> 'identifiers' -> 'inciList' END), 0) = 0 AS no_id,
+           logical_entry_id IN (SELECT logical_entry_id FROM relayx_raw.entry_version WHERE run_id = '20261019T143522Z_eu' AND change_kind = 'RETRACTED') AS retracted_entry,
+           row_number() OVER (PARTITION BY logical_entry_id ORDER BY known_since DESC, page_no DESC, row_no DESC) AS rn
+    FROM relayx_raw.entry_version WHERE run_id = '20261019T143522Z_eu')
+SELECT count(*) FILTER (WHERE no_id) AS versions_no_id_all,
+       count(*) FILTER (WHERE no_id AND NOT retracted_entry) AS versions_no_id_not_retracted,
+       count(DISTINCT logical_entry_id) FILTER (WHERE no_id AND NOT retracted_entry) AS entries_any_version_no_id,
+       count(*) FILTER (WHERE no_id AND NOT retracted_entry AND rn = 1) AS entries_latest_version_no_id,
+       count(*) FILTER (WHERE NOT retracted_entry) AS versions_not_retracted,
+       count(DISTINCT logical_entry_id) FILTER (WHERE NOT retracted_entry) AS entries_not_retracted,
+       2292 AS stated_by_relayx,
+       2292 - count(*) FILTER (WHERE no_id AND NOT retracted_entry) AS diff_vs_versions,
+       2292 - count(*) FILTER (WHERE no_id AND NOT retracted_entry AND rn = 1) AS diff_vs_entries
+FROM v
+
+-- b6b. PROVISIONAL. B6 no-identifier versions (not retracted) by annexRef
+SELECT e.payload ->> 'annexRef' AS annex_ref, count(*) AS versions, count(DISTINCT e.logical_entry_id) AS entries
+FROM relayx_raw.entry_version e
+WHERE e.run_id = '20261019T143522Z_eu'
+  AND e.logical_entry_id NOT IN (SELECT logical_entry_id FROM relayx_raw.entry_version WHERE run_id = '20261019T143522Z_eu' AND change_kind = 'RETRACTED')
+  AND coalesce(nullif(btrim(e.payload -> 'identifiers' ->> 'cas'), ''), nullif(btrim(e.payload -> 'identifiers' ->> 'ec'), ''),
+               nullif(btrim(e.payload -> 'identifiers' ->> 'inci'), '')) IS NULL
+  AND coalesce(jsonb_array_length(CASE WHEN jsonb_typeof(e.payload -> 'identifiers' -> 'casList') = 'array' THEN e.payload -> 'identifiers' -> 'casList' END), 0) = 0
+  AND coalesce(jsonb_array_length(CASE WHEN jsonb_typeof(e.payload -> 'identifiers' -> 'ecList') = 'array' THEN e.payload -> 'identifiers' -> 'ecList' END), 0) = 0
+  AND coalesce(jsonb_array_length(CASE WHEN jsonb_typeof(e.payload -> 'identifiers' -> 'inciList') = 'array' THEN e.payload -> 'identifiers' -> 'inciList' END), 0) = 0
+GROUP BY 1 ORDER BY 2 DESC

@@ -255,6 +255,54 @@ python -m relayx.load_raw data/raw/api/20261022T075923Z_covalo_lookup_eu
 Resume in cmd also takes the explicit run folder, e.g.
 `python -m relayx.substance_pilot lookup --resume data/raw/api/20261022T075923Z_covalo_lookup_eu`.
 
+#### Second full EU /changes replay (prepared 2026-10-22, not run)
+
+**API**, one unit per page (about 77 pages for 15,205 rows on 2026-10-19). Parameters as in
+ADR-002: `since=2000-01-01T00:00:00Z`, `territory=EU`, `limit=200`, paged only by `nextCursor`.
+Run it when no other API command is running. Anaconda Prompt (cmd):
+
+```bat
+cd /d C:\dev\relayx-integration
+conda activate relayx
+set PYTHONPATH=src
+python -m relayx.changes_replay --territory EU --since 2000-01-01T00:00:00Z --limit 200
+for /f "delims=" %d in ('dir /b /ad /on data\raw\changes_replay\*_eu') do @set "RUN=%d"
+echo %RUN%
+python -m relayx.replay_stats data/raw/changes_replay/%RUN%
+python -m relayx.load_raw data/raw/changes_replay/%RUN%
+```
+
+The `for` line sets `RUN` to the newest `*_eu` folder (names sort by UTC stamp); check that
+`echo %RUN%` does not print `20261019T143522Z_eu` before loading. In a `.bat` file write `%%d`
+instead of `%d`. If interrupted: `python -m relayx.changes_replay --resume data/raw/changes_replay/%RUN%`.
+
+Before loading, note the contract change of 2026-10-22 (docs/relayx/README.md): /changes rows now
+carry `event` (RECORDED or RETRACTION) and `eventAt`, and a withdrawn entry appears twice on a full
+replay (RECORDED with changeKind RETRACTED, then RETRACTION). The loader's check counts duplicate
+(logicalEntryId, knownSince) pairs; if a RETRACTION row repeats the knownSince of its RECORDED row,
+the check reports `ok: false` although the rows are as served. Review the check output before
+reading it as a failure; the code is unchanged.
+
+Planned comparison with replay 20261019T143522Z_eu (read-only SQL on relayx_raw.entry_version,
+both runs loaded; query to be written once the new run exists):
+- Entries by logicalEntryId: new (only in the new run), missing (only in the old run; expected 0,
+  any is an anomaly), in both. Expected new: at least the two sodium perborate entries first
+  recorded 2026-10-21 (b3039cad-..., f1e2cc38-...; results/2026-10-22-f2-lookup-run.md).
+- Versions by (logicalEntryId, knownSince): new versions of existing entries; versions missing
+  from the new run.
+- Retracted: entries with a RECORDED row of changeKind RETRACTED or a RETRACTION event in the new
+  run and not retracted in the old run.
+- In-place corrections: versions with the same (logicalEntryId, knownSince) in both runs whose
+  content differs. Compare relayx.hashing canonical SHA-256 over the payload restricted to the
+  keys the old row carries (agreed 2026-10-22), so the new `event` and `eventAt` keys alone do
+  not count as a change; list the top-level keys that differ. payload_sha256 as stored covers
+  the full row and would differ on every row because of the new keys.
+- Differences in `changeKind` and `publishedOn` are classified separately as vendor relabels,
+  not as content or law changes. `event` and `eventAt` are new keys: reported only as present
+  or absent per row, never as a difference.
+- Write results/<date>-replay-comparison.md (counts, lists of new, retracted and corrected
+  entries).
+
 Plan without API calls: `python -m relayx.substance_pilot lookup --dry-run` (add
 `--rate-per-minute` or `--max-items` as for the run) prints calls, units, duration at 60 and
 300 per minute, a disk estimate and free space on C:.

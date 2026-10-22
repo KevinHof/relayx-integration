@@ -98,4 +98,131 @@ stated.
 ## Open points
 - M0 to M5 classification (not started).
 - Whether Relay X charges truncated batches per item sent or per item evaluated.
-- The 2,292 vs 2,079 identifier-less constraint counts.
+- The 2,292 vs 2,079 identifier-less constraint counts (see B6 below).
+
+## Drill-down (added 2026-10-22, PROVISIONAL)
+Sections b1 to b6 of sql/provisional/f2_lookup_profile.sql (same command; rules in its header).
+
+### B1 UNKNOWN_IDENTIFIER CAS, 30 most frequent (products; most frequent Covalo INCI on them)
+None of the 3,473 UNKNOWN_IDENTIFIER CAS appears in the replay, printed or enriched.
+65381-09-1 118 (CAPRYLIC/CAPRIC TRIGLYCERIDE 72); 67762-27-0 112 (CETEARYL ALCOHOL 100);
+61789-91-1 104 (SIMMONDSIA CHINENSIS SEED OIL 44); 8000-25-7 101 (ROSMARINUS OFFICINALIS LEAF OIL
+31); 84604-14-8 100 (ROSMARINUS OFFICINALIS LEAF EXTRACT 58); 91080-23-8 96 (BUTYROSPERMUM PARKII
+BUTTER 62); 8007-69-0 85 (PRUNUS AMYGDALUS DULCIS OIL 60); 194043-92-0 77 (BUTYROSPERMUM PARKII
+BUTTER 60); 8007-46-3 71 (THYMUS VULGARIS FLOWER/LEAF OIL 7); 8008-26-2 70 (CITRUS AURANTIFOLIA
+OIL 26); 8024-32-6 70 (PERSEA GRATISSIMA OIL 44); 8024-06-4 69 (VANILLA PLANIFOLIA FRUIT EXTRACT
+11); 8016-26-0 68 (CISTUS LADANIFERUS RESIN 1); 90045-98-0 67 (SIMMONDSIA CHINENSIS SEED OIL 52);
+8015-73-4 64 (OCIMUM BASILICUM LEAF WATER 11); 1406-66-2 63 (TOCOPHEROL 52); 6290-03-5 60
+(BUTYLENE GLYCOL 58); 84649-99-0 59 (THEOBROMA CACAO SEED BUTTER 19); 84929-27-1 59 (VITIS
+VINIFERA SEED OIL 34); 85507-69-3 57 (ALOE BARBADENSIS LEAF JUICE 24); 68647-73-4 56 (MELALEUCA
+ALTERNIFOLIA LEAF OIL 25); 8005-44-5 55 (CETEARYL ALCOHOL 55); 8007-08-7 54 (ZINGIBER OFFICINALE
+ROOT OIL 9); 8008-52-4 53 (CORIANDRUM SATIVUM FRUIT OIL 11); 84650-00-0 53 (COFFEA ARABICA SEED
+OIL 12); 90320-37-9 53 (PRUNUS AMYGDALUS DULCIS OIL 42); 8002-68-4 49 (JUNIPERUS COMMUNIS FRUIT
+OIL 8); 9007-20-9 49 (CARBOMER 49); 94349-62-9 49 (ALOE BARBADENSIS LEAF JUICE 26); 8016-63-5 48
+(SALVIA SCLAREA OIL 16).
+
+### B2 UNKNOWN_IDENTIFIER INCI, 30 most frequent (products; most frequent Covalo CAS on them, its status)
+BUTYROSPERMUM PARKII BUTTER 326 (91080-23-8, UNKNOWN); OLEA EUROPAEA FRUIT OIL 229 (8001-25-0,
+KNOWN_WITHOUT_DATA); SIMMONDSIA CHINENSIS SEED OIL 211 (90045-98-0, UNKNOWN); PRUNUS AMYGDALUS
+DULCIS OIL 162 (8007-69-0, UNKNOWN); ROSMARINUS OFFICINALIS LEAF EXTRACT 157 (84604-14-8, UNKNOWN);
+PERSEA GRATISSIMA OIL 129 (8024-32-6, UNKNOWN); GLYCYRRHIZA GLABRA ROOT EXTRACT 102 (84775-66-6,
+UNKNOWN); CI 77861 92 (13463-67-7, HAS_DATA); ORYZA SATIVA EXTRACT 87 (8016-60-2, UNKNOWN); VITIS
+VINIFERA SEED OIL 83 (84929-27-1, UNKNOWN); PRUNUS ARMENIACA KERNEL OIL 72 (72869-69-3, UNKNOWN);
+LIMNANTHES ALBA SEED OIL 71 (153065-40-8, UNKNOWN); MELALEUCA ALTERNIFOLIA LEAF OIL 69 (68647-73-4,
+UNKNOWN); ROSMARINUS OFFICINALIS LEAF OIL 65 (8000-25-7, UNKNOWN); GLYCERIN (PLANT DERIVED) 60 (no
+CAS); CURCUMA LONGA ROOT EXTRACT 59 (84775-52-0, UNKNOWN); WATER/AQUA 58 (56-81-5,
+KNOWN_WITHOUT_DATA); ORYZA SATIVA BRAN OIL 55 (68553-81-1, UNKNOWN); CHAMOMILLA RECUTITA FLOWER
+EXTRACT 53 (84082-60-0, UNKNOWN); ELAEIS GUINEENSIS OIL 52 (8002-75-3, UNKNOWN); MANGIFERA INDICA
+SEED BUTTER 51 (90063-86-8, UNKNOWN); ZINGIBER OFFICINALE ROOT EXTRACT 49 (84696-15-1,
+KNOWN_WITHOUT_DATA); OLEA EUROPAEA OIL UNSAPONIFIABLES 46 (156798-12-8, UNKNOWN); OLEA EUROPAEA LEAF
+EXTRACT 45 (8001-25-0, KNOWN_WITHOUT_DATA); TRITICUM VULGARE GERM OIL 45 (68917-73-7, UNKNOWN);
+ORYZA SATIVA BRAN WAX 44 (8016-60-2, UNKNOWN); TITANIUM DIOXIDE (CI 77891) 44 (no CAS); WATER (AQUA)
+44 (7732-18-5, HAS_DATA); CITRUS MEDICA PEEL OIL 42 (8008-56-8, HAS_DATA); COFFEA ARABICA SEED
+EXTRACT 41 (84650-00-0, UNKNOWN).
+
+### B3 KNOWN_WITHOUT_DATA CAS, 15 most frequent (products; most frequent Covalo INCI); none in the replay
+56-81-5 633 (GLYCERIN 501); 107-88-0 382 (BUTYLENE GLYCOL 356); 57-55-6 248 (PROPYLENE GLYCOL 132);
+63148-62-9 244 (DIMETHICONE 232); 7631-86-9 243 (SILICA 222); 12001-26-2 201 (MICA 191); 9006-65-9
+189 (DIMETHICONE 174); 1117-86-8 188 (CAPRYLYL GLYCOL 168); 6920-22-5 159 (1,2-HEXANEDIOL 143);
+18282-10-5 154 (CI 77891 88); 73398-61-5 150 (CAPRYLIC/CAPRIC TRIGLYCERIDE 85); 9067-32-7 149
+(SODIUM HYALURONATE 133); 25322-68-3 148 (PEG-8 12); 12003-38-2 147 (SYNTHETIC FLUORPHLOGOPITE
+143); 61789-40-0 144 (COCAMIDOPROPYL BETAINE 111).
+
+### B4 The 84 replay-only products
+Classes per group (product, matched entry, matched Covalo value), first that applies: 2 guard
+(entry not GROUP or GENERIC_CLASS, and the lookup body for the value has a caveat reporting
+entries set aside: "were NOT returned" or "were removed"; 2a if the note names the entry's
+logicalEntryId or a number the entry prints in its own field of the searched type, numbers taken
+from the note by exact CAS or EC pattern only; 2b otherwise), 1 GROUP, 3 exemption or inventory,
+4 other. The v1.1 guide could not be read here (no PDF reader); the guard is read from the
+served caveat text.
+
+| Class | Groups | Entry-value pairs | Products | Products by first class |
+|---|---|---|---|---|
+| 2a guard, confirmed | 65 | 31 | 49 | 49 |
+| 2b guard, probable | 3 | 3 | 2 | 1 |
+| 1 GROUP | 12 | 4 | 4 | 4 |
+| 3 exemption or inventory | 0 | 0 | 0 | 0 |
+| 4 other | 34 | 4 | 34 | 30 |
+| Total | | | | 84 |
+
+- F1 match route: 2a via a linked substance printedByText 51 groups (42 products), enriched 14
+  (7); 2b enriched 2, own printed field 1; GROUP own printed field 12; other enriched 29, own
+  printed field 5.
+- Groups meeting more than one class definition: none.
+- Examples, class 2a (entry, value, entry's own field, numbers in the note): Annex III 123
+  f35e5a9c…, CAS 8013-86-3, own field 84696-07-1, note shows 84696-07-1 (27 products); Annex II
+  168, CAS 93685-90-6, 67-48-1 / 67-48-1 (3); Annex III 286 and Annex V 44-3 / 44-5, CAS
+  68002-62-0, 112-02-7 or 112-00-5 / note 112-02-7, 112-00-5 (2 each); Annex VI Table 3
+  013-003-00-7, CAS 7784-13-6, 7446-70-0 / 7446-70-0 (2); Annex III 107, CAS 8007-47-4,
+  85085-34-3 / 85085-34-3 (2); Annex IV 148, CAS 89957-89-1, 7659-95-2 / 7659-95-2 (2); Annex V 44
+  and 44-4, CAS 1119-97-7, 17301-53-0 and 1119-94-4 / note 17301-53-0, 112-00-5, 1119-94-4,
+  112-03-8, 112-02-7 "(+2 more)" (1 each). All CAS notes follow one template, as served for
+  8007-47-4: "1 further constraint(s) are linked to the same substance but were NOT returned: each
+  names ONE substance and its own text prints a DIFFERENT number in the field you searched, so
+  serving it would contradict a text that speaks about which body it means. This is a deliberate
+  guard against the index over-linking, not an absence of law. (GROUP entries are NOT withheld
+  this way: their printed numbers are examples, so we serve them for any linked member.) The
+  number(s) those entries print: 85085-34-3. ⚠️ Do NOT assume they designate your substance: a
+  GROUP entry prints the numbers of its members or of its head, which are OTHER bodies. One of
+  them may however be a SECOND number for the very body you searched — the EU corpus publishes
+  some substances under two. Read the `literal` of what you find, and query the number separately
+  before concluding." Every class 2 note as served, with the numbers taken from it: section b4c.
+- Examples, class 2b: Annex V 44-2 and 44-6, CAS 1119-97-7, own field 57-09-0 and 1120-02-1: the
+  note lists five numbers "(+2 more)" and these two are not among those shown. Annex VI Table 3
+  611-142-00-3, NAME `sodium chloride`: the note (name containment) reads "8 entries whose text
+  names DIFFERENT identifiers from the substance you asked for were removed … Removed, as
+  examples: … "product-by-process definition polyazodyestuff obtained by coupling 4-[" (425-740-5)
+  …"; numbers cannot be attributed for a NAME search under the rule, so 2b.
+- Examples, class 1 GROUP: Annex III 360-2 and 360-3 (lavender, RESTRICTED, GROUP), Covalo INCI
+  `STEM EXTRACT` (4 products) and `LEAF` (2), both UNKNOWN_IDENTIFIER in lookup: F1 matched
+  fragments that occur on both sides (the replay's printed INCI strings split on [n] and ";",
+  Covalo INCI arrays split upstream).
+- Examples, class 4 other: Annex IV 120 (ULTRAMARINES, INCI, enriched, KNOWN_WITHOUT_DATA, 28
+  products); Annex III 123, INCI `STEM EXTRACT` (own printed field, UNKNOWN_IDENTIFIER, 4);
+  Annex III 355-2, INCI EUCALYPTUS GLOBULUS LEAF (own printed field, KNOWN_WITHOUT_DATA, 1);
+  Annex IV 138, INCI FERRIC FERROCYANIDE (enriched, KNOWN_WITHOUT_DATA, 1).
+
+### B5 The 303 lookup-only products
+| Route (first by order) | Products | Entries |
+|---|---|---|
+| reachedViaGroupEntry | 1 | 1 |
+| INCI index enrichment (INCI item, matchedBy substanceIndex) | 170 | 25 |
+| other | 132 | 82 |
+Other: CAS items 74 products (55 entries), INCI items matched literally 47 (26), NAME 11 (5).
+Every returned entry of these products is in the replay. Most frequent entries: REACH Candidate
+List 100.014.129 and REACH Annex XVII entry 65 (two entries), each via INCI CARBOMER (substance
+index) for 136 products; Annex III 353 (citrus, via CAS 0008008-56-8 with leading zeros, and
+INCI) 22; Annex VI Table 3 607-743-00-5 (LACTIC ACID, inci and name) 21; Annex IV 143, Annex VI 27
+and 27a, Annex III 321 (INCI CI77891 without space, substance index) 14 each; Annex III 60
+(OLEAMIDE DEA and NAME cocamide dea and others) 10.
+
+### B6 searchMeans "2292"
+Replay 20261019T143522Z_eu, entries not retracted, with nothing printed in identifiers cas, ec,
+inci, casList, ecList or inciList: 2,298 versions; 2,289 entries with any such version; 2,288
+entries whose latest version has none. Against 2,292: versions 6 more, entries (latest version)
+4 fewer. It does not reconcile exactly. Most are CITES (Annex A to D) and Annex VI Table 3.
+Possible reasons, not checked: the live measurement is three days later, Relay X's "current
+version" may differ from latest knownSince (Q10), and "scoped to our markets" may include implied
+zones. The earlier 2,079 used the F1 identifier set (including linked substances), a different
+definition.
