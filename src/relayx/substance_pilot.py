@@ -10,6 +10,11 @@ opinions, which do not accept `name`; they are recorded as NOT_QUERYABLE.
 Usage:
     python -m relayx.substance_pilot run
     python -m relayx.substance_pilot run --resume <run_dir>
+
+The same command runs the F2 Covalo lookup (relayx.covalo_lookup, runbook section 5a):
+    python -m relayx.substance_pilot preflight
+    python -m relayx.substance_pilot lookup [--values CSV] [--rate-per-minute N] [--max-units N]
+                                            [--max-items N] [--dry-run] [--resume <run_dir>]
 """
 from __future__ import annotations
 
@@ -182,16 +187,63 @@ def analyse(run_dir: Path) -> dict:
     return rep
 
 
+def lookup_main(a) -> int:
+    """F2 Covalo lookup run (relayx.covalo_lookup): new run, --resume or --dry-run."""
+    from . import covalo_lookup as cl
+    from .lookup_values import read_values
+    if a.resume:
+        prev = json.loads((a.resume / "manifest.json").read_text(encoding="utf-8"))
+        if prev.get("feed") != cl.FEED:
+            raise SystemExit(f"{a.resume} is not a {cl.FEED} run")
+        p = prev["params"]
+        values_file, max_items = Path(p["values_file"]), p["max_items"]
+        rate = a.rate_per_minute or p["rate_per_minute"]
+        max_units = a.max_units or p["max_units"]
+        rd = a.resume
+    else:
+        values_file, max_items = a.values, a.max_items
+        rate, max_units = a.rate_per_minute or 60, a.max_units or 24000
+        rd = None
+    if rate > cl.MAX_RATE:
+        raise SystemExit(f"--rate-per-minute may not exceed {cl.MAX_RATE}")
+    cfg = cl.Config(rate_per_minute=rate, max_units=max_units, max_items=max_items)
+    values = read_values(values_file)
+    if a.dry_run:
+        print(json.dumps(cl.dry_run(values, cfg) | {"values_file": values_file.as_posix()}, indent=1))
+        return 0
+    if rd is None:
+        stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+        rd = a.out / f"{stamp}_covalo_lookup_eu" if not max_items else a.out / f"{stamp}_covalo_lookup_eu_canary{max_items}"
+    m = cl.LookupRun(rd, values, values_file, cfg).run()
+    if m["stop_reason"] == "interrupted (Ctrl+C)":
+        return 130
+    return 0 if m["status"] == "complete" else 1
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("command", choices=["run", "analyse"])
+    ap.add_argument("command", choices=["run", "analyse", "lookup", "preflight"],
+                    help="run/analyse: redundancy pilot; lookup: F2 Covalo lookup run; preflight: 1-unit quota check")
     ap.add_argument("run_dir", type=Path, nargs="?")
     ap.add_argument("--out", type=Path, default=Path("data/raw/api"))
-    ap.add_argument("--resume", type=Path, metavar="RUN_DIR", help="continue this pilot run")
+    ap.add_argument("--resume", type=Path, metavar="RUN_DIR", help="continue this run (pilot or lookup)")
     ap.add_argument("--env", type=Path, default=Path(".env"))
+    ap.add_argument("--values", type=Path, default=Path("data/f2_lookup/20261022/values.csv"),
+                    help="lookup: value list (relayx.lookup_values)")
+    ap.add_argument("--rate-per-minute", type=int, help="lookup: units per 60 s, default 60, at most 300")
+    ap.add_argument("--max-units", type=int, help="lookup: hard unit cap, default 24000")
+    ap.add_argument("--max-items", type=int, help="lookup: canary on the first N items of the value list")
+    ap.add_argument("--dry-run", action="store_true", help="lookup: plan only, no API call")
     a = ap.parse_args(argv)
     from dotenv import load_dotenv
     load_dotenv(a.env)
+    if a.command == "lookup":
+        return lookup_main(a)
+    if a.command == "preflight":
+        from .covalo_lookup import preflight
+        info = preflight(a.out)
+        print(json.dumps(info, indent=1))
+        return 0 if info["status"] == 200 else 1
     if a.command == "analyse":
         print(json.dumps(analyse(a.run_dir), indent=1, ensure_ascii=False, default=str))
         return 0

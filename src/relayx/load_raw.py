@@ -6,6 +6,9 @@ source; this only inserts, never updates.
       -> relayx_ops.extract_run, relayx_raw.changes_page, relayx_raw.entry_version
 - other endpoint runs (call_*.json + call_*.meta.json + manifest.json, see api_extract)
       -> relayx_ops.extract_run, relayx_raw.api_response
+  Covalo lookup runs (relayx.covalo_lookup) also carry a per-item ledger in the manifest
+  (stored with it in extract_run.manifest); it is reconciled against the bodies first and
+  any mismatch stops the load.
 
 One transaction per run; a run_id that is already loaded is refused. Every raw file is
 checked against its stored sha256 before insert. After the load, `check_*` recomputes
@@ -23,6 +26,7 @@ from pathlib import Path
 
 from psycopg.types.json import Jsonb
 
+from .covalo_lookup import LedgerCheck, LedgerMismatch
 from .db import connect
 from .hashing import canonical_sha256, sha256_bytes
 
@@ -111,6 +115,9 @@ def load_api_run(conn, run_dir: Path) -> dict:
     manifest = json.loads((run_dir / "manifest.json").read_text(encoding="utf-8"))
     run_id = manifest["run_id"]
     calls = 0
+    # Covalo lookup runs carry a per-item ledger in the manifest: it must match the stored
+    # bodies exactly (count per call, index, ok, error, ingredientStatus) or nothing is loaded.
+    ledger = LedgerCheck(manifest) if "ledger" in manifest else None
     with conn.transaction():
         cur = conn.cursor()
         _insert_run(cur, run_dir, manifest, manifest["feed"])
@@ -119,6 +126,11 @@ def load_api_run(conn, run_dir: Path) -> dict:
             call_file = run_dir / f"call_{meta['call_no']:05d}.json"
             raw = _read_verified(meta, call_file)
             body = _json_or_none(raw)
+            if ledger is not None:
+                try:
+                    ledger.add(meta, body)
+                except LedgerMismatch as exc:
+                    raise LoadError(str(exc)) from exc
             cur.execute(
                 """INSERT INTO relayx_raw.api_response
                    (run_id, call_no, endpoint, method, request_params, request_body, source_ref,
@@ -133,7 +145,13 @@ def load_api_run(conn, run_dir: Path) -> dict:
                  Jsonb(meta.get("rate") or {}), Jsonb(body) if body is not None else None,
                  _rel(call_file)))
             calls += 1
-    return {"run_id": run_id, "calls": calls}
+        info = {"run_id": run_id, "calls": calls}
+        if ledger is not None:
+            try:
+                info["ledger_check"] = ledger.finish()
+            except LedgerMismatch as exc:
+                raise LoadError(str(exc)) from exc
+    return info
 
 
 def check_changes_run(conn, run_id: str) -> dict:

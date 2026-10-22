@@ -141,8 +141,8 @@ Check: `manifest.json` `calls` = number of entries in `specs.json`, `by_status` 
 
 ## 5. Per-substance runs
 
-Only the redundancy pilot exists as a command. The full per-substance run and the F2 Covalo
-lookup run (docs/plans/2026-10-20-f2-covalo-lookup.md) are not built yet and not approved.
+Two commands exist: the redundancy pilot (below) and the F2 Covalo lookup run (section 5a).
+The full per-substance run over the catalogue is not built.
 
 **API**, pilot: about 460 units (lookup:batch counts one unit per item; GET endpoints one
 unit per call). Draws 100 catalogue items (seed 20261020) from `kevin.relayx_eu_identifiers_v2`
@@ -164,6 +164,97 @@ appended as a new call, also on resume.
 
 Check: `by_status` only `200`; the number of lookup items answered equals the sample size;
 `analyse` output against the previous results file.
+
+### 5a. F2 Covalo lookup run
+
+**API**, one unit per item: 23,503 items in 941 lookup:batch calls (plan:
+docs/plans/2026-10-20-f2-covalo-lookup.md, approved by Timo 2026-10-22). Value list:
+data/f2_lookup/20261022/values.csv, built with `python -m relayx.lookup_values build` (local,
+read-only). Quota handling differs from the shared client: units are counted by the command
+(one per item sent), calls are paced to `--rate-per-minute` (default 60, at most 300), the
+hard cap is `--max-units` (default 24000). The RateLimit-* headers are logged after every batch
+next to that count. Never run two API commands at the same time: the quota is shared by every
+key of the subscription.
+
+**(b) and (c) may only be used after the pre-flight (a) shows a policy of 300**
+(`RateLimit-Policy` starting with `300;`, printed as `"policy_is_300": true`). Otherwise run them
+without `--rate-per-minute 300` (default 60) and expect about 6.5 h for (c).
+
+Open a PowerShell window outside Claude Code and prepare it (every window, including the second
+one for (d)):
+
+```powershell
+Set-Location C:\dev\relayx-integration
+conda activate relayx
+$env:PYTHONPATH = "src"
+```
+
+(a) Pre-flight, 1 unit: one GET /texts. Prints and saves RateLimit-Limit, -Remaining, -Reset
+and -Policy to `data/raw/api/<UTCstamp>_preflight/preflight.json`.
+
+```powershell
+python -m relayx.substance_pilot preflight
+```
+
+(b) Canary: the first 100 items at 300 per minute (100 units, 4 calls).
+
+```powershell
+python -m relayx.substance_pilot lookup --values data/f2_lookup/20261022/values.csv --max-items 100 --rate-per-minute 300
+```
+
+(c) Full run at 300 per minute (about 93 min; calls take about 6 s each, so latency, not the
+quota, sets the pace).
+
+```powershell
+python -m relayx.substance_pilot lookup --values data/f2_lookup/20261022/values.csv --rate-per-minute 300 --max-units 24000
+```
+
+(d) Follow the log of the latest full run from a second window:
+
+```powershell
+$run = Get-ChildItem data\raw\api -Directory | Where-Object Name -like "*_covalo_lookup_eu" | Sort-Object Name | Select-Object -Last 1
+Get-Content (Join-Path $run.FullName "run.log") -Wait -Tail 20
+```
+
+(e) Resume the latest full run after an interruption (Ctrl+C, crash, reboot, unit cap). It
+restarts at the first unrecorded item, re-sends nothing recorded and refuses a changed value
+list. The unit cap counts the units of the whole run, not only the resumed part.
+
+```powershell
+$run = Get-ChildItem data\raw\api -Directory | Where-Object Name -like "*_covalo_lookup_eu" | Sort-Object Name | Select-Object -Last 1
+python -m relayx.substance_pilot lookup --resume $run.FullName --rate-per-minute 300
+```
+
+(f) Load the latest full run afterwards (local, no API call):
+
+```powershell
+$run = Get-ChildItem data\raw\api -Directory | Where-Object Name -like "*_covalo_lookup_eu" | Sort-Object Name | Select-Object -Last 1
+python -m relayx.load_raw $run.FullName
+```
+
+The canary run directory ends in `_covalo_lookup_eu_canary100`; to follow or load it, use
+`-like "*_covalo_lookup_eu_canary100"` in the same commands.
+
+Plan without API calls: `python -m relayx.substance_pilot lookup --dry-run` (add
+`--rate-per-minute` or `--max-items` as for the run) prints calls, units, duration at 60 and
+300 per minute, a disk estimate and free space on C:.
+
+Output: `data/raw/api/<UTCstamp>_covalo_lookup_eu/` with `call_*.json`, `call_*.meta.json`,
+`manifest.json` (status, units, truncations, `failed_items`, `call_log` with the SHA-256 of
+every request, per-item `ledger` with ok, error, message and ingredientStatus) and `run.log`
+(one line per batch, one progress line per minute: items done, units used, errors,
+truncations, ETA). Exit code 0 only if every selected item is recorded; 130 after Ctrl+C.
+Windows is kept awake while the command runs.
+
+Behaviour: 429 waits Retry-After + 2 s, else until RateLimit-Reset + 2 s. `truncated: true`
+records `truncatedReason` and resends exactly the unevaluated items. `ok: false` items are
+recorded, not retried, and listed at the end. 5xx and network errors are retried 3 times with
+backoff; 401, 403 or any 400 stop the run (the 400 body goes to `run.log`); 10 consecutive
+failed batches stop it.
+
+Check: `manifest.json` `status` = `complete`, `items_recorded` = `params.items_selected`,
+`units_used` within the cap, `truncations` and `failed_items` reviewed. The loader then
+reconciles the ledger with every stored body and refuses the run on any mismatch.
 
 ### Targeted checks
 
@@ -204,7 +295,9 @@ Resume: nothing to resume. An interrupted load rolls back its run; run the same 
 Check: the command prints JSON per run with a `checks` block and exits with 1 if any check
 fails. /changes runs: rows = manifest rows = sum of `page_returned` = first page `total`,
 no non-200 pages, no duplicate (logical_entry_id, known_since), every payload hash recomputed.
-Other runs: calls in the database = manifest calls, body hashes match. Quick look in SQL:
+Other runs: calls in the database = manifest calls, body hashes match. F2 Covalo lookup runs
+also print `ledger_check` (calls and items reconciled, ingredientStatus counts); the per-item
+ledger is stored with the manifest in `relayx_ops.extract_run.manifest`. Quick look in SQL:
 
 ```sql
 SELECT run_id, feed, status, pages, row_count, requests, loaded_at
@@ -239,7 +332,7 @@ python -m pytest -q tests/test_changes_replay.py
 ```
 
 No database or API access needed; HTTP calls are faked in the tests. Expected: all pass
-(39 on 2026-10-20).
+(61 on 2026-10-22).
 
 ## 10. After a run
 
