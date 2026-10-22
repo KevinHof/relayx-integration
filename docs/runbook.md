@@ -218,7 +218,10 @@ Get-Content (Join-Path $run.FullName "run.log") -Wait -Tail 20
 
 (e) Resume the latest full run after an interruption (Ctrl+C, crash, reboot, unit cap). It
 restarts at the first unrecorded item, re-sends nothing recorded and refuses a changed value
-list. The unit cap counts the units of the whole run, not only the resumed part.
+list. The unit cap counts the units of the whole run, not only the resumed part. `--resume`
+keeps the `--max-units` and `--rate-per-minute` of the original run (read from its manifest),
+not the defaults; an explicit `--max-units` or `--rate-per-minute` on the resume command
+replaces them. The value list and `--max-items` always come from the original run.
 
 ```powershell
 $run = Get-ChildItem data\raw\api -Directory | Where-Object Name -like "*_covalo_lookup_eu" | Sort-Object Name | Select-Object -Last 1
@@ -234,6 +237,23 @@ python -m relayx.load_raw $run.FullName
 
 The canary run directory ends in `_covalo_lookup_eu_canary100`; to follow or load it, use
 `-like "*_covalo_lookup_eu_canary100"` in the same commands.
+
+Anaconda Prompt (cmd) variant, as used for the run of 2026-10-22: prepare the window, then the
+same `python` commands as (a) to (c); load by the explicit run folder.
+
+```bat
+cd /d C:\dev\relayx-integration
+conda activate relayx
+set PYTHONPATH=src
+python -m relayx.substance_pilot preflight
+python -m relayx.substance_pilot lookup --values data/f2_lookup/20261022/values.csv --max-items 100 --rate-per-minute 300
+python -m relayx.substance_pilot lookup --values data/f2_lookup/20261022/values.csv --rate-per-minute 300 --max-units 24000
+python -m relayx.load_raw data/raw/api/20261022T075600Z_covalo_lookup_eu_canary100
+python -m relayx.load_raw data/raw/api/20261022T075923Z_covalo_lookup_eu
+```
+
+Resume in cmd also takes the explicit run folder, e.g.
+`python -m relayx.substance_pilot lookup --resume data/raw/api/20261022T075923Z_covalo_lookup_eu`.
 
 Plan without API calls: `python -m relayx.substance_pilot lookup --dry-run` (add
 `--rate-per-minute` or `--max-items` as for the run) prints calls, units, duration at 60 and
