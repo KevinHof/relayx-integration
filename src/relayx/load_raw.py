@@ -154,6 +154,25 @@ def load_api_run(conn, run_dir: Path) -> dict:
     return info
 
 
+def version_key(payload: dict) -> tuple:
+    """Identity of one /changes row for the duplicate check: (logicalEntryId, knownSince, event).
+    Since the contract of 2026-10-22 a withdrawn entry appears twice on a replay (RECORDED with
+    changeKind RETRACTED, then a RETRACTION notice), and the notice may repeat the knownSince of
+    its RECORDED row. Rows without `event` (replays before that contract) count as RECORDED."""
+    return payload.get("logicalEntryId"), payload.get("knownSince"), payload.get("event") or "RECORDED"
+
+
+def duplicate_versions(payloads) -> int:
+    """Rows whose version_key was already seen (0 when every row is distinct)."""
+    seen: set[tuple] = set()
+    dup = 0
+    for p in payloads:
+        k = version_key(p)
+        dup += k in seen
+        seen.add(k)
+    return dup
+
+
 def check_changes_run(conn, run_id: str) -> dict:
     cur = conn.cursor()
     cur.execute("SELECT row_count, pages, manifest->>'first_page_total' FROM relayx_ops.extract_run WHERE run_id=%s",
@@ -162,23 +181,24 @@ def check_changes_run(conn, run_id: str) -> dict:
     cur.execute("""SELECT count(*), coalesce(sum(page_returned),0), count(*) FILTER (WHERE http_status <> 200)
                    FROM relayx_raw.changes_page WHERE run_id=%s""", (run_id,))
     db_pages, sum_returned, non200 = cur.fetchone()
-    cur.execute("""SELECT count(*), count(DISTINCT logical_entry_id),
-                          count(*) - count(DISTINCT (logical_entry_id, known_since)),
-                          count(*) FILTER (WHERE known_since IS NULL)
+    cur.execute("""SELECT count(*), count(DISTINCT logical_entry_id), count(*) FILTER (WHERE known_since IS NULL)
                    FROM relayx_raw.entry_version WHERE run_id=%s""", (run_id,))
-    db_rows, distinct_ids, dup_pairs, null_ks = cur.fetchone()
+    db_rows, distinct_ids, null_ks = cur.fetchone()
     mismatched = 0
+    payloads = []
     cur.execute("SELECT payload, payload_sha256 FROM relayx_raw.entry_version WHERE run_id=%s", (run_id,))
     for payload, h in cur:
         if canonical_sha256(payload) != h:
             mismatched += 1
+        payloads.append({k: payload.get(k) for k in ("logicalEntryId", "knownSince", "event")})
+    dup_versions = duplicate_versions(payloads)
     return {"manifest_rows": manifest_rows, "first_page_total": int(first_total) if first_total else None,
             "manifest_pages": manifest_pages, "db_pages": db_pages, "non_200_pages": non200,
             "sum_page_returned": sum_returned, "db_rows": db_rows, "distinct_logical_entry_id": distinct_ids,
-            "duplicate_id_known_since": dup_pairs, "null_known_since": null_ks,
+            "duplicate_id_known_since_event": dup_versions, "null_known_since": null_ks,
             "payload_hash_mismatch_after_roundtrip": mismatched,
             "ok": (manifest_rows == db_rows == sum_returned and db_pages == manifest_pages
-                   and dup_pairs == 0 and mismatched == 0)}
+                   and dup_versions == 0 and mismatched == 0)}
 
 
 def check_api_run(conn, run_id: str) -> dict:

@@ -548,6 +548,149 @@ SELECT id_type, route, count(DISTINCT product_id) AS products,
        count(DISTINCT logical_entry_id) AS entries
 FROM f2_b5 GROUP BY 1, 2 ORDER BY 1, 2
 
+-- v1. PROVISIONAL. 2a ULTRAMARINES: the replay entry F1 matched (latest version): annex, identifiers, linked substances, nomenclature INCI fields
+SELECT DISTINCT ON (logical_entry_id) logical_entry_id, payload ->> 'annexRef' AS annex_ref, payload ->> 'entryRef' AS entry_ref,
+       payload ->> 'annexType' AS annex_type, payload ->> 'entryScope' AS entry_scope, payload -> 'identifiers' AS identifiers,
+       (SELECT jsonb_agg(jsonb_build_object('printedByText', ls -> 'printedByText', 'identifiers', ls -> 'identifiers'))
+          FROM jsonb_array_elements(CASE WHEN jsonb_typeof(payload -> 'linkedSubstances') = 'array' THEN payload -> 'linkedSubstances' ELSE '[]' END) ls) AS linked_substances,
+       jsonb_build_object('inciEu', payload -> 'nomenclature' -> 'inciEu', 'inciUs', payload -> 'nomenclature' -> 'inciUs',
+                          'inciIecic', payload -> 'nomenclature' -> 'inciIecic', 'chemicalName', payload -> 'nomenclature' -> 'chemicalName') AS nomenclature_inci
+FROM relayx_raw.entry_version WHERE run_id = '20261019T143522Z_eu' AND logical_entry_id = '09e7fba5-8ae6-51e1-b331-c8cf2a5d7dcc'
+ORDER BY logical_entry_id, known_since DESC
+
+-- v1b. PROVISIONAL. 2a ULTRAMARINES: F1 values of that entry by route (all types)
+SELECT id_type, route, string_agg(value, ' | ' ORDER BY value) AS values_
+FROM f2_rx_route WHERE logical_entry_id = '09e7fba5-8ae6-51e1-b331-c8cf2a5d7dcc' GROUP BY 1, 2 ORDER BY 1, 2
+
+-- v1c. PROVISIONAL. 2a ULTRAMARINES: lookup body for the queried value (status, total, searchMeans, caveats, otherNameMatches, entries returned)
+SELECT f.call_no, f.idx, f.value, r -> 'ingredientStatus' AS ingredient_status, r ->> 'total' AS total, r ->> 'searchMeans' AS search_means,
+       r -> 'identifierCaveats' AS identifier_caveats, r -> 'otherNameMatches' AS other_name_matches,
+       r -> 'identifierResolution' AS identifier_resolution,
+       (SELECT string_agg(k ->> 'logicalEntryId', ', ') FROM jsonb_array_elements(r -> 'constraints') k) AS entries_returned
+FROM f2_item f JOIN f2_call c USING (call_no) CROSS JOIN LATERAL jsonb_array_elements(c.body -> 'results') r
+WHERE f.id_type = 'INCI' AND f.value = 'ULTRAMARINES' AND (r ->> 'index')::int = f.idx
+
+-- v2. PROVISIONAL. 2b CARBOMER: entries lookup returned for the CARBOMER items, with link evidence (matchedBy, group flag, caveat CAS and where the entry carries it)
+WITH it AS (
+    SELECT f.call_no, f.idx, f.value, f.products,
+           (SELECT (regexp_match(e ->> 'note', '^Your identifier designates, in our substance index, a substance with a single CAS number \((\d{2,7}-\d{2}-\d)\)\.'))[1]
+              FROM f2_item_extra x, jsonb_array_elements(x.caveats) e WHERE x.call_no = f.call_no AND x.idx = f.idx
+               AND e ->> 'note' LIKE 'Your identifier designates%' LIMIT 1) AS caveat_cas
+    FROM f2_item f WHERE f.id_type = 'INCI' AND btrim(f.value) = 'CARBOMER')
+SELECT it.value AS queried, it.products, it.caveat_cas, k.logical_entry_id, k.annex_ref, k.entry_ref, k.entry_scope, ec.scope_class,
+       k.annex_type, k.matched_by::text AS matched_by, k.via_group,
+       (SELECT string_agg(DISTINCT o.route, ', ') FROM f2_rx_route o WHERE o.logical_entry_id = k.logical_entry_id
+          AND o.id_type = 'CAS' AND o.value = it.caveat_cas) AS entry_carries_caveat_cas_as,
+       (SELECT string_agg(DISTINCT o.route, ', ') FROM f2_rx_route o WHERE o.logical_entry_id = k.logical_entry_id
+          AND o.id_type = 'INCI' AND o.value = 'CARBOMER') AS entry_carries_inci_carbomer_as,
+       (SELECT left(string_agg(DISTINCT o.value, ' | '), 120) FROM f2_rx_route o WHERE o.logical_entry_id = k.logical_entry_id
+          AND o.id_type = 'CAS' AND o.route = 'own field') AS entry_own_cas
+FROM it JOIN f2_constraint k ON k.call_no = it.call_no AND k.idx = it.idx
+LEFT JOIN f2_entry_class ec ON ec.logical_entry_id = k.logical_entry_id
+ORDER BY it.value, k.annex_ref, k.entry_ref
+
+-- v2b. PROVISIONAL. 2b CARBOMER: the caveat notes on the CARBOMER items as served
+SELECT x.value, e ->> 'note' AS note FROM f2_item_extra x, jsonb_array_elements(x.caveats) e
+WHERE x.id_type = 'INCI' AND btrim(x.value) = 'CARBOMER' ORDER BY 1
+
+-- v3. PROVISIONAL. 2c lookup-only products with route "other": link in the lookup body (item type, matchedBy, reachedViaGroupEntry)
+SELECT id_type, matched_by, count(DISTINCT product_id) AS products, count(DISTINCT logical_entry_id) AS entries,
+       count(DISTINCT value) AS values_
+FROM f2_b5 WHERE product_id IN (SELECT product_id FROM f2_b5 GROUP BY 1 HAVING min(route) = '3 other') AND route = '3 other'
+GROUP BY 1, 2 ORDER BY 3 DESC
+
+-- v3b. PROVISIONAL. 2c route "other": the 10 most frequent entries, with the values and matchedBy that reached them
+SELECT b.logical_entry_id, b.annex_ref, b.entry_ref, b.annex_type, ec.entry_scope, ec.scope_class,
+       string_agg(DISTINCT b.matched_by, ', ') AS matched_by, count(DISTINCT b.product_id) AS products,
+       left(string_agg(DISTINCT b.id_type || '=' || b.value, ' | '), 200) AS values_
+FROM f2_b5 b LEFT JOIN f2_entry_class ec USING (logical_entry_id)
+WHERE b.route = '3 other' AND b.product_id IN (SELECT product_id FROM f2_b5 GROUP BY 1 HAVING min(route) = '3 other')
+GROUP BY 1, 2, 3, 4, 5, 6 ORDER BY products DESC, 1 LIMIT 10
+
+-- v3c. PROVISIONAL. 2c route "other": why F1 missed these values (value on the Covalo side vs the replay)
+SELECT b.id_type, CASE WHEN b.value ~ '^0' THEN 'CAS with leading zero' WHEN r.value IS NOT NULL THEN 'value in replay (other entry)'
+                       ELSE 'value not in replay' END AS f1_side, count(DISTINCT b.product_id) AS products, count(DISTINCT b.value) AS values_,
+       left(string_agg(DISTINCT b.value, ' | '), 200) AS examples
+FROM f2_b5 b LEFT JOIN rx_val r ON r.id_type = b.id_type AND r.value = b.value
+WHERE b.route = '3 other' AND b.product_id IN (SELECT product_id FROM f2_b5 GROUP BY 1 HAVING min(route) = '3 other')
+GROUP BY 1, 2 ORDER BY 1, 3 DESC
+
+-- v4. PROVISIONAL. 2d STEM EXTRACT and LEAF on the Covalo side: raw INCI elements as stored, products, and the other INCI elements of those products
+SELECT pg_temp.norm_inci(r.raw_value) AS f1_value, '[' || r.raw_value || ']' AS raw_element, count(DISTINCT r.product_id) AS products,
+       (SELECT left(string_agg('[' || r2.raw_value || ']', ' ' ORDER BY r2.raw_value), 300) FROM cov_raw r2
+         WHERE r2.product_id = min(r.product_id) AND r2.id_type = 'INCI') AS all_inci_elements_of_one_product
+FROM cov_raw r WHERE r.id_type = 'INCI' AND pg_temp.norm_inci(r.raw_value) IN ('STEM EXTRACT', 'LEAF')
+GROUP BY 1, 2 ORDER BY 1, 3 DESC
+
+-- v4b. PROVISIONAL. 2d STEM EXTRACT and LEAF on the replay side: entries, printed inci, inciList, enriched INCI fields, F1 route
+SELECT DISTINCT ON (o.logical_entry_id, o.value) o.value, o.logical_entry_id, ev.payload ->> 'annexRef' AS annex_ref, ev.payload ->> 'entryRef' AS entry_ref,
+       ev.payload ->> 'entryScope' AS entry_scope, o.route, ev.payload -> 'identifiers' ->> 'inci' AS printed_inci,
+       ev.payload -> 'identifiers' -> 'inciList' AS inci_list, ev.payload -> 'nomenclature' -> 'inciEu' AS inci_eu
+FROM f2_rx_route o JOIN relayx_raw.entry_version ev ON ev.run_id = '20261019T143522Z_eu' AND ev.logical_entry_id = o.logical_entry_id
+WHERE o.id_type = 'INCI' AND o.value IN ('STEM EXTRACT', 'LEAF')
+ORDER BY o.logical_entry_id, o.value, ev.known_since DESC
+
+-- v4c. PROVISIONAL. 2d F1 product matches resting only on matched INCI values of one or two words (all matched values are such INCI)
+WITH m AS (
+    SELECT DISTINCT i.product_id, i.id_type, i.value,
+           array_length(regexp_split_to_array(btrim(i.value), '\s+'), 1) AS words
+    FROM cov_id i JOIN cov_val v USING (id_type, value) WHERE v.in_replay),
+p AS (SELECT product_id FROM m GROUP BY 1 HAVING bool_and(id_type = 'INCI' AND words <= 2))
+SELECT (SELECT count(*) FROM p) AS products, (SELECT count(*) FROM f2_f1_match) AS f1_replay_match,
+       (SELECT count(*) FROM p JOIN f2_prod USING (product_id) WHERE has_data) AS of_which_lookup_has_data,
+       (SELECT count(DISTINCT value) FROM m WHERE product_id IN (SELECT product_id FROM p)) AS distinct_values,
+       (SELECT count(*) FROM p WHERE product_id IN (SELECT product_id FROM m WHERE words = 1)
+          AND product_id NOT IN (SELECT product_id FROM m WHERE words = 2)) AS only_one_word_values
+
+-- v4d. PROVISIONAL. 2d those values with product counts (products whose F1 match rests only on such values)
+WITH m AS (
+    SELECT DISTINCT i.product_id, i.id_type, i.value,
+           array_length(regexp_split_to_array(btrim(i.value), '\s+'), 1) AS words
+    FROM cov_id i JOIN cov_val v USING (id_type, value) WHERE v.in_replay),
+p AS (SELECT product_id FROM m GROUP BY 1 HAVING bool_and(id_type = 'INCI' AND words <= 2))
+SELECT m.value, m.words, count(DISTINCT m.product_id) AS products,
+       (SELECT f.status FROM f2_item f WHERE f.id_type = 'INCI' AND f.value = m.value) AS lookup_status
+FROM m JOIN p USING (product_id) GROUP BY 1, 2 ORDER BY 3 DESC, 1
+
+-- v5. PROVISIONAL. 2e A6 bins 68000 to 99999 and 100000 and above, per status (share of the status's distinct CAS)
+WITH v AS (
+    SELECT f.status, f.value, split_part(f.value, '-', 1)::int AS lead FROM f2_item f
+    WHERE f.id_type = 'CAS' AND f.status IN ('HAS_DATA', 'KNOWN_WITHOUT_DATA', 'UNKNOWN_IDENTIFIER'))
+SELECT status, count(*) AS cas_values,
+       count(*) FILTER (WHERE lead BETWEEN 68000 AND 99999) AS bin_68000_99999,
+       round(100.0 * count(*) FILTER (WHERE lead BETWEEN 68000 AND 99999) / count(*), 1) AS pct_68000_99999,
+       count(*) FILTER (WHERE lead >= 100000) AS bin_100000_plus,
+       round(100.0 * count(*) FILTER (WHERE lead >= 100000) / count(*), 1) AS pct_100000_plus
+FROM v GROUP BY 1 ORDER BY 1
+
+-- v6. PROVISIONAL. 2f Lluch Essence and Indukern: UNKNOWN_IDENTIFIER CAS of their products by A6 range
+WITH h AS (
+    SELECT DISTINCT c.name AS house, i.value
+    FROM cov_id i JOIN covalo.product p ON p.id = i.product_id JOIN covalo.company c ON c.id = p.company
+    WHERE i.id_type = 'CAS' AND c.name IN ('Lluch Essence', 'Indukern')),
+u AS (SELECT h.house, h.value, split_part(h.value, '-', 1)::int AS lead FROM h
+      JOIN f2_item f ON f.id_type = 'CAS' AND f.value = h.value AND f.status = 'UNKNOWN_IDENTIFIER')
+SELECT house,
+       CASE WHEN lead < 8000 THEN '1 below 8000' WHEN lead <= 8099 THEN '2 8000 to 8099' WHEN lead <= 8999 THEN '3 8100 to 8999'
+            WHEN lead <= 9999 THEN '4 9000 to 9999' WHEN lead <= 67999 THEN '5 10000 to 67999'
+            WHEN lead <= 99999 THEN '6 68000 to 99999' ELSE '7 100000 and above' END AS bin,
+       count(*) AS unknown_cas, round(100.0 * count(*) / sum(count(*)) OVER (PARTITION BY house), 1) AS pct_of_house
+FROM u GROUP BY 1, 2 ORDER BY 1, 2
+
+-- v6b. PROVISIONAL. 2f Lluch Essence and Indukern: the 20 most frequent UNKNOWN_IDENTIFIER CAS (all Covalo products), house products, most frequent Covalo INCI
+WITH h AS (
+    SELECT i.value, c.name AS house, i.product_id
+    FROM cov_id i JOIN covalo.product p ON p.id = i.product_id JOIN covalo.company c ON c.id = p.company
+    WHERE i.id_type = 'CAS' AND c.name IN ('Lluch Essence', 'Indukern'))
+SELECT f.value AS cas, f.products AS covalo_products,
+       count(DISTINCT h.product_id) FILTER (WHERE h.house = 'Lluch Essence') AS lluch_products,
+       count(DISTINCT h.product_id) FILTER (WHERE h.house = 'Indukern') AS indukern_products,
+       (SELECT i.value || ' (' || count(*) || ')' FROM cov_id c JOIN cov_id i ON i.product_id = c.product_id AND i.id_type = 'INCI'
+         WHERE c.id_type = 'CAS' AND c.value = f.value GROUP BY i.value ORDER BY count(*) DESC, i.value LIMIT 1) AS top_covalo_inci
+FROM f2_item f JOIN h ON h.value = f.value
+WHERE f.id_type = 'CAS' AND f.status = 'UNKNOWN_IDENTIFIER'
+GROUP BY f.value, f.products ORDER BY f.products DESC, f.value LIMIT 20
+
 -- b6. PROVISIONAL. B6 replay 20261019T143522Z_eu: versions and entries with no CAS, EC or INCI printed (identifiers cas, ec, inci, casList, ecList, inciList)
 WITH v AS (
     SELECT logical_entry_id, known_since, change_kind,

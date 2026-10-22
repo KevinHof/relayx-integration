@@ -226,3 +226,93 @@ Possible reasons, not checked: the live measurement is three days later, Relay X
 version" may differ from latest knownSince (Q10), and "scoped to our markets" may include implied
 zones. The earlier 2,079 used the F1 identifier set (including linked substances), a different
 definition.
+
+### Verifications (sections v1 to v6)
+**2a ULTRAMARINES (28 products, B4 class 4).** F1 matched replay entry
+09e7fba5-8ae6-51e1-b331-c8cf2a5d7dcc, Annex IV entry 120, COLORANT, SINGLE. Own fields: name
+Lazurite, colourIndex 77007; no cas, ec, inci or inciList. Linked substances (printedByText): INCI
+ULTRAMARINE BLUE, PIGMENT BLUE 29, CI 77007; colour index 77007. Nomenclature: inciEu null, inciUs
+"Ultramarines", inciIecic "CI 77007". F1 matched ULTRAMARINES only through nomenclature.inciUs
+(enriched). Lookup for INCI ULTRAMARINES (call 18, index 13): KNOWN_WITHOUT_DATA, total 0, no
+constraints, searchMeans "Searched by inci through the substance index …", one caveat (the generic
+INCI-index note: "Resolved through the INCI index, then widened to literal substance names. The
+INCI index is PARTIAL. …"), no otherNameMatches, no withheldByIdentifier, withheldByScope count 0.
+The body does not explain why entry 120 is not returned: nothing in it refers to that entry or
+to a guard.
+
+**2b CARBOMER (136 lookup-only products, B5).** Two queried values (CARBOMER, 214 products; a
+variant with a leading space, 1 product) return the same three entries, all SINGLE, scope class
+"indirectly relevant", matchedBy substanceIndex, reachedViaGroupEntry false:
+- REACH Annex XVII entry 65, d8c7bb04-…, "Boric acid (H3BO3), ammonium salt", CAS 27522-09-4;
+- REACH Annex XVII entry 65, ecb60768-…, "Ammonium borate", CAS 22694-75-3;
+- REACH Candidate List 100.014.129, 24b3dca2-…, "Disodium tetraborate, anhydrous", CAS 1330-43-4.
+Link: substance index only. No caveat names a single CAS for CARBOMER; none of the three entries
+carries CARBOMER as an INCI in any field, and none is a GROUP entry. The body also carries a
+name-containment note: 8 entries removed, examples "Carbomer" (9007-20-9), "Carbomer, sodium
+salt" (73298-57-4). This is the same link as VE-36 (Relay X catalogue bundles CARBOMER with EC
+215-540-4, disodium tetraborate).
+
+**2c Lookup-only products with route "other" (132).** Link in the body: CAS items matched
+literally (matchedBy cas) 74 products, 55 entries, 44 values; INCI items matched literally
+(matchedBy inci) 47, 26, 14; NAME items with matchedBy empty 9 products (4 entries), matchedBy name
+2 (1). No reachedViaGroupEntry and no substanceIndex in this route. Why F1 missed them: all 44 CAS
+values carry leading zeros as stored in Covalo (e.g. 0008008-56-8, 0000078-70-6), which F1 keeps
+and lookup normalises; the 14 INCI and 6 NAME values are not in the replay as F1 derives it (e.g.
+LACTIC ACID, CITRUS LIMON OIL, PROPYLENE, HYDROXYETHYL ACRYLATE; NAME cocamide dea). 10 most
+frequent entries: Annex VI Table 3 607-743-00-5 (LACTIC ACID, inci and name) 21; Annex III 353
+GROUP (CAS 0008008-56-8, INCI CITRUS LIMON OIL) 11; Annex III 60 and Annex VI Table 3
+616-096-00-8 (NAME cocamide, lauramide, oleamide, palm kernelamide dea, matchedBy empty) 8 each;
+Annex III 366 GROUP (CAS 0008007-01-0) 7; Annex VI Table 3 601-011-00-9 (INCI PROPYLENE) 5;
+Annex III 351-2 GROUP (0008008-57-9) 4; Annex III 357 GROUP (0008022-96-6) 4; Annex III 181 GROUP
+(0008046-19-3) 3; Annex VI Table 3 607-072-00-8 (HYDROXYETHYL ACRYLATE) 3.
+
+**2d STEM EXTRACT and LEAF (B4 class 1).** Covalo: both are separate elements of the INCI array,
+e.g. `[Aster Tataricus] [Flower] [Leaf] [Stem Extract]`, `[ Epilobium Fleischeri] [Flower] [ Leaf]
+[ Stem Extract]`, `[Actinidia Polygama Leaf] [ Stem Extract]` (LEAF 4 products, STEM EXTRACT 5),
+so a name such as "… Flower/Leaf/Stem Extract" was split on "/" before it reached Covalo. Replay:
+Annex III 360-2 and 360-3 (GROUP) print inci "Lavandula Intermedia Flower/Leaf/Stem Extract / …"
+and "Lavandula Angustifolia Oil / Lavandula Angustifolia Flower/Leaf/Stem Extract", and their
+inciList holds the fragments as items: `['Lavandula Intermedia Flower', 'Leaf', 'Stem Extract',
+'Stem Oil', 'Lavandula Intermedia Oil']` and `['Lavandula Angustifolia Oil', 'Lavandula
+Angustifolia Flower', 'Leaf', 'Stem Extract']`. Annex III 123 (Cupressus, SINGLE) has the same
+pattern for STEM EXTRACT. F1 took the fragments from inciList (own field); the split is in Relay
+X's inciList, not in F1.
+F1 matches resting only on INCI values of one or two words: 11,407 of the 24,677 F1-matched
+products (4,576 of them on one-word values only), 464 distinct values; 11,374 of the 11,407 also
+have HAS_DATA in lookup. 460 of the 464 values are HAS_DATA in lookup; the other four are
+ULTRAMARINES (45 products, KNOWN_WITHOUT_DATA), FERRIC FERROCYANIDE (4, KNOWN_WITHOUT_DATA), STEM
+EXTRACT (5, UNKNOWN_IDENTIFIER), LEAF (4, UNKNOWN_IDENTIFIER). Most frequent: WATER 2,284, TITANIUM
+DIOXIDE 1,872, AQUA 1,616, CI 77491 671, PHENOXYETHANOL 565, CI 77492 491, CI 77499 482, CI 77891
+420, CI 19140 372, SODIUM BENZOATE 331. Full list: section v4d. Word count alone does not
+separate fragments from valid INCI.
+
+**2e A6, upper bins (share of the status's distinct CAS).**
+| Status | CAS | 68000 to 99999 | 100000 and above |
+|---|---|---|---|
+| HAS_DATA | 1,028 | 164 (16.0 %) | 57 (5.5 %) |
+| KNOWN_WITHOUT_DATA | 2,038 | 556 (27.3 %) | 224 (11.0 %) |
+| UNKNOWN_IDENTIFIER | 3,473 | 747 (21.5 %) | 733 (21.1 %) |
+
+**2f Fragrance houses.** UNKNOWN_IDENTIFIER CAS on their products by range:
+| Range | Lluch Essence | Indukern |
+|---|---|---|
+| below 8000 | 456 (47.2 %) | 247 (44.0 %) |
+| 8000 to 8099 | 99 (10.2 %) | 76 (13.5 %) |
+| 8100 to 8999 | 0 | 0 |
+| 9000 to 9999 | 4 (0.4 %) | 4 (0.7 %) |
+| 10000 to 67999 | 265 (27.4 %) | 146 (26.0 %) |
+| 68000 to 99999 | 107 (11.1 %) | 75 (13.3 %) |
+| 100000 and above | 36 (3.7 %) | 14 (2.5 %) |
+| Total | 967 | 562 |
+20 most frequent (all Covalo products / Lluch / Indukern; most frequent Covalo INCI): 8000-25-7
+101/5/2 (ROSMARINUS OFFICINALIS LEAF OIL); 8007-69-0 85/1/0 (PRUNUS AMYGDALUS DULCIS OIL);
+8007-46-3 71/5/0 (THYMUS VULGARIS FLOWER/LEAF OIL); 8008-26-2 70/5/4 (CITRUS AURANTIFOLIA OIL);
+8024-32-6 70/1/0 (PERSEA GRATISSIMA OIL); 8024-06-4 69/1/3 (VANILLA PLANIFOLIA FRUIT EXTRACT);
+8016-26-0 68/8/7 (CISTUS LADANIFERUS RESIN); 90045-98-0 67/2/0 (SIMMONDSIA CHINENSIS SEED OIL);
+8015-73-4 64/6/4 (OCIMUM BASILICUM LEAF WATER); 68647-73-4 56/3/3 (MELALEUCA ALTERNIFOLIA LEAF
+OIL); 8007-08-7 54/4/2 (ZINGIBER OFFICINALE ROOT OIL); 8008-52-4 53/5/2 (CORIANDRUM SATIVUM FRUIT
+OIL); 84650-00-0 53/0/2 (COFFEA ARABICA SEED OIL); 8002-68-4 49/3/2 (JUNIPERUS COMMUNIS FRUIT OIL);
+94349-62-9 49/0/1 (ALOE BARBADENSIS LEAF JUICE); 8016-63-5 48/2/1 (SALVIA SCLAREA OIL); 8000-29-1
+44/4/4 (CYMBOPOGON NARDUS OIL); 8015-92-7 44/2/1 (ANTHEMIS NOBILIS FLOWER OIL); 8016-36-2 43/4/4
+(BOSWELLIA CARTERII GUM OIL); 8001-67-0 42/4/0 (COFFEA ARABICA SEED OIL). The INCI come from other
+companies' products carrying the same CAS; the houses' own products carry no INCI (A5).

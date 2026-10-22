@@ -278,10 +278,12 @@ instead of `%d`. If interrupted: `python -m relayx.changes_replay --resume data/
 
 Before loading, note the contract change of 2026-10-22 (docs/relayx/README.md): /changes rows now
 carry `event` (RECORDED or RETRACTION) and `eventAt`, and a withdrawn entry appears twice on a full
-replay (RECORDED with changeKind RETRACTED, then RETRACTION). The loader's check counts duplicate
-(logicalEntryId, knownSince) pairs; if a RETRACTION row repeats the knownSince of its RECORDED row,
-the check reports `ok: false` although the rows are as served. Review the check output before
-reading it as a failure; the code is unchanged.
+replay (RECORDED with changeKind RETRACTED, then RETRACTION). Since 2026-10-22 the loader's
+duplicate check is keyed on (logicalEntryId, knownSince, event), rows without `event` (the
+2026-10-19 replay) counting as RECORDED, so a RETRACTION row next to its RECORDED row passes and a
+repeated RECORDED row still fails the check (`duplicate_id_known_since_event`). As before, a failed
+check is reported with exit code 1 after the load transaction has committed. `replay_stats` still
+counts (logicalEntryId, knownSince) pairs without `event`.
 
 Planned comparison with replay 20261019T143522Z_eu (read-only SQL on relayx_raw.entry_version,
 both runs loaded; query to be written once the new run exists):
