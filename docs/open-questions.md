@@ -57,6 +57,9 @@ source of truth (CLAUDE.md rule 4).
     Relay X will fix the header and the docs. One /changes page = one unit regardless of
     size; `limit=200` is the maximum. Trial runs on the standard 60/min, adjustable when
     going commercial based on stated throughput.
+  - Update 2026-10-22: trial rate raised to 300 per minute (stated by Relay X, observed in
+    the pre-flight headers, `RateLimit-Policy` starting with `300;`). The code follows the
+    rate-limit headers; no limit is hard-coded.
   - RateLimit-Reset format: answered by observation (2026-10-20): contract and
     authenticated responses agree on a Unix timestamp; parsing stays defensive.
   - Observed on unauthenticated routes: `RateLimit-Limit: 15000`, Reset 900 / 793.

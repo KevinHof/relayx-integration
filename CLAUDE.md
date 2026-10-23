@@ -47,8 +47,10 @@ Decisions taken so far: docs/decisions/ (one ADR per decision)
    database or in data/ (gitignored).
 4. Relay X API behaviour:
    - Respect the quota: 60 requests per minute per subscription, shared across all our
-     keys (more keys do not add throughput; Relay X, 2026-10-19). The RateLimit-* response
-     headers remain the runtime source of truth; never hard-code limits. Parse RateLimit-Reset defensively (seconds or Unix timestamp).
+     keys (more keys do not add throughput; Relay X, 2026-10-19). Trial rate raised to 300
+     per minute on 2026-10-22 (stated by Relay X, observed in the pre-flight headers). The
+     code follows the rate-limit headers: the RateLimit-* response headers remain the
+     runtime source of truth; never hard-code limits. Parse RateLimit-Reset defensively (seconds or Unix timestamp).
      A batch entry costs one unit. Honour Retry-After on 429, handle `truncated: true`.
    - Page /changes only with the returned opaque `nextCursor` (passed back as `cursor`),
      never with `offset`, `nextSince` or the local clock. Store `nextSince` for dating a
@@ -82,6 +84,9 @@ and open points. Keep it under one page. These summaries are shared back for rev
   `$env:PYTHONPATH = 'src'; & "$env:USERPROFILE\anaconda3\envs\relayx\python.exe" -m relayx.<module> ...`
   Tests: `& "$env:USERPROFILE\anaconda3\envs\relayx\python.exe" -m pytest -q` (no PYTHONPATH needed).
   Kevin runs API commands himself in an Anaconda Prompt (cmd); see docs/runbook.md section 5a.
+- The relayx-regulatory MCP tools (mcp__relayx-regulatory__*) call the Relay X API and share
+  the subscription quota. Treat every call as an API call: do not use them without Kevin's
+  explicit approval in the message.
 - Output to a file: PowerShell pipes re-encode text. Set `$env:PYTHONIOENCODING = 'utf-8'` and
   redirect inside cmd: `cmd /c "<python.exe> -m ... > <file> 2> <errfile>"`. With `-I` the PYTHON*
   variables are ignored; use `-X utf8` instead.

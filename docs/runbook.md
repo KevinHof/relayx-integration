@@ -28,6 +28,8 @@ $env:PYTHONPATH = "src"
 - `PYTHONPATH=src` is needed because the package is not installed. Tests do not need it
   (`tests/conftest.py` adds `src`).
 - Optional: `$env:PYTHONIOENCODING = "utf-8"` when redirecting output to a file.
+- From Claude Code (no conda on the PowerShell path): see CLAUDE.md, "Working conventions",
+  for invoking Python and redirecting output.
 
 `.env` in the repo root (template: `.env.example`, never committed):
 
@@ -385,6 +387,9 @@ creates TEMP objects, each titled section after it is printed as a tab-separated
 the transaction is rolled back, so nothing persists. `--timeout` sets the statement timeout
 in seconds (default 300). Progress per section goes to stderr.
 
+From Claude Code, invoke the report runner and redirect its output as described in CLAUDE.md,
+"Working conventions" (interpreter path, `cmd /c` redirection, report runner options).
+
 ## 8. Archiving a run
 
 ```powershell
@@ -402,7 +407,7 @@ python -m pytest -q tests/test_changes_replay.py
 ```
 
 No database or API access needed; HTTP calls are faked in the tests. Expected: all pass
-(61 on 2026-10-22).
+(64 on 2026-10-23).
 
 ## 10. After a run
 

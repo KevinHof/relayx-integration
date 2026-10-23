@@ -54,6 +54,13 @@ rewriting them.
 - Q6 Relay X side: do the INCI printed in Relay X entries and in its catalogue match CosIng
   INCI? List non-matches.
 
+## Decisions (recorded 2026-10-23)
+- Conflict rule: where Covalo's CAS and a CosIng-derived CAS conflict, Covalo's CAS stays
+  the record and the derived number is not used for that product. In the analysis this was
+  applied to CAS only (EC conflicts were counted); in production it is applied to EC as well.
+- Q6 does not depend on the validation sample (data/validation/f3_tier_sample.csv); it can
+  run before the verdicts are in.
+
 ## Boundary
 Comparing CosIng's annex references with Relay X annex membership is not part of F3; it
 belongs to the legal accuracy track.

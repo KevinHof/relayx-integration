@@ -36,18 +36,21 @@ F. Fast-track (2026-10-20): pre-signing matching assessment. The contract with R
      identifiers and the Relay X catalogue, provisional coverage by identifier type, size
      of the per-substance source list including Covalo identifiers. Done 2026-10-20
      (results/2026-10-20-f1-matching-assessment.md).
-   - Step 2 (proposal): lookup run with Covalo identifiers first, so every Covalo
-     identifier gets Relay X's own status; mismatch classification.
-   Fast-track order (2026-10-20):
-   - F1b: step 1 additions. Done 2026-10-20 (in the step 1 results file), under review.
+   - Step 2: lookup run with Covalo identifiers first, so every Covalo identifier gets
+     Relay X's own status; mismatch classification. Lookup run done as F2 (below).
+   Fast-track order (2026-10-20), status updated 2026-10-23:
+   - F1b: step 1 additions. Done 2026-10-20 (in the step 1 results file).
+   - F2: Covalo-first lookup run (docs/plans/2026-10-20-f2-covalo-lookup.md). Done: full run
+     20261022T075923Z_covalo_lookup_eu (23,503 items) loaded, profiled, drill-down and
+     verifications 2a to 2f (results/2026-10-22-f2-lookup-run.md,
+     results/2026-10-22-covalo-cas-quality.md).
    - F3: CosIng as reference for INCI quality and the INCI to CAS bridge
-     (docs/plans/2026-10-20-f3-cosing-bridge.md). SCHEDULED, waiting for the CosIng load.
-   - F2: Covalo-first lookup run (docs/plans/2026-10-20-f2-covalo-lookup.md). PARKED,
-     awaiting internal approval.
-   - F4: mismatch classification. After F2 and F3.
+     (docs/plans/2026-10-20-f3-cosing-bridge.md). Parts 1 to 3 done (Q1 to Q5, tiers, options
+     A to D); Q6 not started; validation sample verdicts pending.
+   - F4: mismatch classification (M0 to M5). Not started.
 L. Legal accuracy track: check Relay X content against the legal texts (e.g. annex
-   membership, CosIng annex references, the Annex XVII entries 28 to 30 check). NOT STARTED;
-   run in a separate chat.
+   membership, CosIng annex references, the Annex XVII entries 28 to 30 check). NOT STARTED
+   (status 2026-10-23); run in a separate chat.
 3. Structure profiling of every extracted content type, not only constraint entries: field dictionary in docs/data-model/, profiling queries in sql/profiling/. Gate: Kevin reviews the profile.
 4. Core model, decided per content type in order of use: grains, entities and identifier model as an ADR per content type, based on the profiling. Constraint entries first.
 5. Normalisation: raw JSONB into core tables, reproducible from raw, with tests.
