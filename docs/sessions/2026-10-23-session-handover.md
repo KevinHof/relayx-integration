@@ -75,10 +75,9 @@ Pending:
 - Gitignored data: data/f2_lookup/20261022/ (values.csv, excluded_check_digit.csv, build.json,
   SHA256SUMS.txt); data/validation/f3_tier_sample.csv (120 rows, SHA-256
   BEEEF7049559818229B9300944B56471D053B4C07D8502A3E542C1BB48402DAF); raw runs under data/raw/.
-- Scratch files in the session scratchpad (temporary directory, not in the repo), including
-  q16_to_csv.py, the converter that wrote data/validation/f3_tier_sample.csv from section q16 of
-  the F3 report output; fetch_openapi.py and diff_openapi.py (contract fetch and diff of
-  2026-10-22); pilot_bytes.py; exploration SQL f1_extra*.sql, f2_explore*.sql, f2_extra*.sql,
-  f2_notsearched.sql. The sample can be regenerated from section q16; the converter itself is not
-  committed.
+- The converter that wrote data/validation/f3_tier_sample.csv from section q16 of the F3 report
+  output is committed as scripts/f3/q16_to_csv.py (scratch tool, pending the part 2b addendum).
+- Scratch files in the session scratchpad (temporary directory, not in the repo):
+  fetch_openapi.py and diff_openapi.py (contract fetch and diff of 2026-10-22); pilot_bytes.py;
+  exploration SQL f1_extra*.sql, f2_explore*.sql, f2_extra*.sql, f2_notsearched.sql.
 - Uncommitted work in the repository: none.
