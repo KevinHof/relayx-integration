@@ -58,7 +58,9 @@ source of truth (CLAUDE.md rule 4).
     size; `limit=200` is the maximum. Trial runs on the standard 60/min, adjustable when
     going commercial based on stated throughput.
   - Update 2026-10-22: trial rate raised to 300 per minute (stated by Relay X, observed in
-    the pre-flight headers, `RateLimit-Policy` starting with `300;`). The code follows the
+    the pre-flight headers, `RateLimit-Policy: 300;w=60`, `RateLimit-Limit: 300`; verified
+    against the stored pre-flight response, data/raw/api/20261022T075539Z_preflight/
+    preflight.json). The code follows the
     rate-limit headers; no limit is hard-coded.
   - RateLimit-Reset format: answered by observation (2026-10-20): contract and
     authenticated responses agree on a Unix timestamp; parsing stays defensive.

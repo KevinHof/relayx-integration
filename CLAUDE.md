@@ -50,7 +50,9 @@ Decisions taken so far: docs/decisions/ (one ADR per decision)
      keys (more keys do not add throughput; Relay X, 2026-10-19). Trial rate raised to 300
      per minute on 2026-10-22 (stated by Relay X, observed in the pre-flight headers). The
      code follows the rate-limit headers: the RateLimit-* response headers remain the
-     runtime source of truth; never hard-code limits. Parse RateLimit-Reset defensively (seconds or Unix timestamp).
+     runtime source of truth; never hard-code limits. Precise behaviour: the F2 lookup
+     command paces itself to --rate-per-minute and logs the rate-limit headers without
+     waiting on them; only the shared client waits on the headers. Parse RateLimit-Reset defensively (seconds or Unix timestamp).
      A batch entry costs one unit. Honour Retry-After on 429, handle `truncated: true`.
    - Page /changes only with the returned opaque `nextCursor` (passed back as `cursor`),
      never with `offset`, `nextSince` or the local clock. Store `nextSince` for dating a
